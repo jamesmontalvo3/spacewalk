@@ -71,6 +71,18 @@ Maestro is under heavy development. While it's possible to `npm install -g xops-
 3. Setup the `maestro` command by doing `npm link`
 4. Test it out on a Maestro project
 
+### Managing Node Versions
+
+The officially supported version of Node is in the `.nvmrc` file at the root of the repo. You may either manually install a matching version of Node, or you may use a Node version manager. We recommend using a Node version manager. To use one, follow the procedure below:
+
+1. Install [nvm](https://github.com/nvm-sh/nvm) on Mac/Linux, [nvm-windows](https://github.com/coreybutler/nvm-windows) on Windows
+2. From the root of the repo, run `nvm install` to download/install Node at the version specified in `.nvmrc` (if you haven't already installed this version)
+3. `nvm use` to activate the specified version of Node
+4. If you previously used a different version of Node, delete the old `node_modules/` directory
+5. `npm install` to (re)install packages with the specified version of Node
+
+**NOTE**: if you use a Node version manager, you _must_ ensure that you are using the same verison of Node in any procedure repos in order for the `npm` linked version of `maestro` to be found on your path.
+
 ### VS Code
 
 If you use [VS Code](https://code.visualstudio.com/), we recommend installing the [eslint extension](https://github.com/microsoft/vscode-eslint) to see linting messages in your editor as you work. You'll also get automatic formatting to fix common mistakes.
