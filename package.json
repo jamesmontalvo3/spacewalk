@@ -1,5 +1,5 @@
 {
-  "name": "xops-pat",
+  "name": "maestro",
   "version": "4.0.0-rc1",
   "description": "Composing procedures for space operations",
   "main": "index.js",
