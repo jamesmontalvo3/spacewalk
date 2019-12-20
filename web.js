@@ -4,6 +4,8 @@ const React = require('react');
 const ReactDOM = require('react-dom');
 const App = require('./app/components/App');
 
+import('./pkg/stn.js').then((m) => m.run()).catch(console.error);
+
 /**
  * NOTE: Below is deliberately over-exposing modules for now. This is intended for exploring how
  *       Maestro will be used in browser.

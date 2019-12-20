@@ -1,5 +1,6 @@
 const path = require('path');
 const webpack = require('webpack');
+const WasmPackPlugin = require('@wasm-tool/wasm-pack-plugin');
 
 module.exports = {
 
@@ -20,7 +21,10 @@ module.exports = {
 	},
 
 	plugins: [
-
+		// for STNs
+		new WasmPackPlugin({
+			crateDirectory: path.resolve(__dirname, '.')
+		}),
 		// The following modules don't make sense in the browser context. Replace them with dummies
 		// or replacements that provide functionality in the browser.
 		new webpack.NormalModuleReplacementPlugin(

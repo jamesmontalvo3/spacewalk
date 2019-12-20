@@ -7,3 +7,6 @@
 **/api-docs/
 test/cases/**/build
 build/*
+
+/target
+**/*.rs.bk

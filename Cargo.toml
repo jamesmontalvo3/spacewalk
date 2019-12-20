@@ -1,0 +1,21 @@
+[package]
+name = "stn"
+version = "0.1.0"
+authors = ["Cameron Pittman <cameron.w.pittman@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+default = ["console_error_panic_hook", "wee_alloc"]
+
+[dependencies]
+wasm-bindgen="0.2"
+web-sys = { version = "0.3.33", features = ['console'] }
+
+console_error_panic_hook = { version = "0.1.1", optional = true }
+
+wee_alloc = { version = "0.4.2", optional = true }

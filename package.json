@@ -14,7 +14,8 @@
     "test:watch": "env BABEL_ENV=test npm run test -- --watch",
     "build": "env BABEL_ENV=build ./node_modules/.bin/webpack",
     "build:watch": "env BABEL_ENV=build ./node_modules/.bin/webpack --watch",
-    "build:prod": "env BABEL_ENV=build ./node_modules/.bin/webpack -p"
+    "build:prod": "env BABEL_ENV=build ./node_modules/.bin/webpack -p",
+    "serve": "env BABEL_ENV=build webpack-dev-server"
   },
   "babel": {
     "env": {
@@ -24,7 +25,18 @@
           "@babel/react"
         ],
         "plugins": [
-          "@babel/plugin-proposal-class-properties"
+          "@babel/plugin-proposal-class-properties",
+          "@babel/plugin-syntax-dynamic-import"
+        ]
+      },
+      "serve": {
+        "presets": [
+          "@babel/env",
+          "@babel/react"
+        ],
+        "plugins": [
+          "@babel/plugin-proposal-class-properties",
+          "@babel/plugin-syntax-dynamic-import"
         ]
       },
       "test": {
@@ -106,9 +118,11 @@
     "webpack-dev-server": "^3.9.0"
   },
   "devDependencies": {
+    "@babel/plugin-syntax-dynamic-import": "^7.7.4",
     "@babel/plugin-transform-runtime": "^7.7.6",
     "@babel/register": "^7.7.7",
     "@babel/runtime": "^7.7.7",
+    "@wasm-tool/wasm-pack-plugin": "^1.1.0",
     "chai": "^4.2.0",
     "enzyme": "^3.10.0",
     "enzyme-adapter-react-16": "^1.15.1",
