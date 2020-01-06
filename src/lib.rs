@@ -13,8 +13,10 @@ extern {
 }
 
 #[wasm_bindgen]
-pub fn greet() {
-    alert("Hello, wasm-game-of-life!");
+pub fn greet(msg: &str) {
+    let intro = "wasm says: ";
+    let message = format!("{}{}", intro, msg);
+    alert(&message);
 }
 
 #[wasm_bindgen]
@@ -22,7 +24,7 @@ pub fn run() -> Result<(), JsValue> {
     #[cfg(debug_assertions)]
     console_error_panic_hook::set_once();
 
-    console::log_1(&JsValue::from_str("Hello world!"));
+    console::log_1(&JsValue::from_str("Hello from Rust!"));
 
     Ok(())
 }

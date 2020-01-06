@@ -140,5 +140,10 @@
     "sinon": "^7.5.0",
     "webpack": "^4.41.2",
     "webpack-cli": "^3.3.10"
-  }
+  },
+  "files": [
+    "pkg/index_bg.wasm",
+    "pkg/index.d.ts"
+  ],
+  "types": "pkg/index.d.ts"
 }
