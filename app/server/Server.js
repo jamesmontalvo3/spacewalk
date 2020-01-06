@@ -24,7 +24,8 @@ module.exports = class Server {
 
 			// Serve application resources
 			{ webPath: 'maestro', localBase: __dirname, localRelative: '../../build' },
-			{ webPath: 'maestro-views', localBase: __dirname, localRelative: '../view' }
+			{ webPath: 'maestro-views', localBase: __dirname, localRelative: '../view' },
+			{ webPath: '', localBase: __dirname, localRelative: '../../build' }
 		];
 	}
 
@@ -62,6 +63,8 @@ module.exports = class Server {
 				procedureFiles: this.procedureFiles
 			}));
 		});
+
+		// this.app.use('/', express.static(path.join(__dirname, 'build')));
 
 		this.app.listen(this.port, () => {
 			consoleHelper.success(
