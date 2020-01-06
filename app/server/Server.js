@@ -64,8 +64,6 @@ module.exports = class Server {
 			}));
 		});
 
-		// this.app.use('/', express.static(path.join(__dirname, 'build')));
-
 		this.app.listen(this.port, () => {
 			consoleHelper.success(
 				`Visit http://localhost:${this.port} in your web browser. Type ctrl-c here to exit`
