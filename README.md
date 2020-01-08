@@ -76,7 +76,7 @@ Maestro is under heavy development. While it's possible to `npm install -g xops-
 We're experimenting with Rust to build WASM modules for faster math. To output the web (HTML) version you'll need to install the Rust toolchain and run an additional build command.
 
 1. Install [`cargo` + `rustc`](https://doc.rust-lang.org/cargo/getting-started/installation.html)
-2. When building the app, run `npm build && npm link` instead of just `npm link`.
+2. When building the app, run `npm run build && npm link` instead of just `npm link`.
 
 Everything else is the same.
 
