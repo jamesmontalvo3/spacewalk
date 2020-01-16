@@ -13,7 +13,7 @@ describe('ColumnsHandler', function() {
 		const ch = new ColumnsHandler();
 		const columnsDef = [
 			{ key: 'IV', actors: '*', display: 'IV/SSRMS/MCC' }, // note "actors" is string here
-			{ key: 'EV1', actors: ['EV1'], display: 'EV1' } // note "actors" is array here
+			{ key: 'EV1', actors: ['EV1'], display: 'EV1 (Sally)' } // note "actors" is array here
 		];
 		ch.updateColumns(columnsDef);
 		columnsDef[0].actors = ['*']; // in model, converts strings to arrays for actors
@@ -95,9 +95,9 @@ describe('ColumnsHandler', function() {
 			assert.strictEqual(ch.columnsHandler.getActorColumnKey('anyone-else'), 'IV');
 		});
 
-		ch.columnsDef.push({ key: 'EV2', actors: ['EV2', 'EV3'], display: 'EV2/EV3' });
-		ch.columnsHandler.updateColumns(ch.columnsDef);
 		it('should say EV2 is in EV2 column after column added', function() {
+			ch.columnsDef.push({ key: 'EV2', actors: ['EV2', 'EV3'], display: 'EV2/EV3' });
+			ch.columnsHandler.updateColumns(ch.columnsDef);
 			assert.strictEqual(ch.columnsHandler.getActorColumnKey('EV2'), 'EV2');
 		});
 		it('should say EV3 is in EV2 column due to multiple actors in definition', function() {
@@ -114,9 +114,9 @@ describe('ColumnsHandler', function() {
 			assert.strictEqual(ch.columnsHandler.getActorColumnIndex('IV'), 0);
 			assert.strictEqual(ch.columnsHandler.getActorColumnIndex('EV1'), 1);
 		});
-		ch.columnsDef.push({ key: 'EV2', actors: ['EV2', 'EV3'], display: 'EV2/EV3' });
-		ch.columnsHandler.updateColumns(ch.columnsDef);
 		it('should properly identify column index after updating columns', function() {
+			ch.columnsDef.push({ key: 'EV2', actors: ['EV2', 'EV3'], display: 'EV2/EV3' });
+			ch.columnsHandler.updateColumns(ch.columnsDef);
 			assert.strictEqual(ch.columnsHandler.getActorColumnIndex('IV'), 0);
 			assert.strictEqual(ch.columnsHandler.getActorColumnIndex('EV1'), 1);
 			assert.strictEqual(ch.columnsHandler.getActorColumnIndex('EV2'), 2);
@@ -124,23 +124,56 @@ describe('ColumnsHandler', function() {
 		});
 	});
 	describe('getColumnKeys()', function() {
-		it('should ...', function() {
-
+		const ch = initializeTwoColumns();
+		it('should get just IV and EV1 initially', function() {
+			assert.deepStrictEqual(ch.columnsHandler.getColumnKeys(), ['IV', 'EV1']);
+		});
+		it('should get EV2, also, after column added', function() {
+			ch.columnsDef.push({ key: 'EV2', actors: ['EV2', 'EV3'], display: 'EV2/EV3' });
+			ch.columnsHandler.updateColumns(ch.columnsDef);
+			assert.deepStrictEqual(ch.columnsHandler.getColumnKeys(), ['IV', 'EV1', 'EV2']);
 		});
 	});
 	describe('getColumnKeyIndex()', function() {
-		it('should ...', function() {
-
+		const ch = initializeTwoColumns();
+		it('should properly identify column index by column key', function() {
+			assert.strictEqual(ch.columnsHandler.getColumnKeyIndex('IV'), 0);
+			assert.strictEqual(ch.columnsHandler.getColumnKeyIndex('EV1'), 1);
+		});
+		it('should properly identify column index after updating columns by column key', function() {
+			ch.columnsDef.push({ key: 'EV2', actors: ['EV2', 'EV3'], display: 'EV2/EV3' });
+			ch.columnsHandler.updateColumns(ch.columnsDef);
+			assert.strictEqual(ch.columnsHandler.getColumnKeyIndex('IV'), 0);
+			assert.strictEqual(ch.columnsHandler.getColumnKeyIndex('EV1'), 1);
+			assert.strictEqual(ch.columnsHandler.getColumnKeyIndex('EV2'), 2);
+			assert.throws(function() {
+				// EV3 is an actor on the EV2 column, not a column itself
+				ch.columnsHandler.getColumnKeyIndex('EV3');
+			});
 		});
 	});
 	describe('getColumnDisplayTextByActor()', function() {
-		it('should ...', function() {
-
+		const ch = initializeTwoColumns();
+		ch.columnsDef.push({ key: 'EV2', actors: ['EV2', 'EV3'], display: 'EV2/EV3' });
+		ch.columnsHandler.updateColumns(ch.columnsDef);
+		it('should properly get column display text by actor ID', function() {
+			assert.strictEqual(ch.columnsHandler.getColumnDisplayTextByActor('IV'), 'IV/SSRMS/MCC');
+			assert.strictEqual(ch.columnsHandler.getColumnDisplayTextByActor('EV1'), 'EV1 (Sally)');
+			assert.strictEqual(ch.columnsHandler.getColumnDisplayTextByActor('EV2'), 'EV2/EV3');
+			assert.strictEqual(ch.columnsHandler.getColumnDisplayTextByActor('EV3'), 'EV2/EV3');
 		});
 	});
 	describe('getDisplayTextFromColumnKey()', function() {
-		it('should ...', function() {
+		const ch = initializeTwoColumns();
+		ch.columnsDef.push({ key: 'EV2', actors: ['EV2', 'EV3'], display: 'EV2/EV3' });
+		ch.columnsHandler.updateColumns(ch.columnsDef);
+		it('should properly get column display text by column key', function() {
+			assert.strictEqual(ch.columnsHandler.getDisplayTextFromColumnKey('IV'), 'IV/SSRMS/MCC');
+			assert.strictEqual(ch.columnsHandler.getDisplayTextFromColumnKey('EV1'), 'EV1 (Sally)');
+			assert.strictEqual(ch.columnsHandler.getDisplayTextFromColumnKey('EV2'), 'EV2/EV3');
 
+			// EV3 is an actor on the EV2 column, not a column itself
+			assert.isUndefined(ch.columnsHandler.getDisplayTextFromColumnKey('EV3'));
 		});
 	});
 
