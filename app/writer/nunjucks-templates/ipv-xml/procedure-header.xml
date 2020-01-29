@@ -8,7 +8,8 @@
     <ProcCode>{{procCode}}</ProcCode>
 </MetaData>
 <ProcTitle>
-    <ProcNumber>{{number|default("X.X.XXX")}}</ProcNumber> <Text>{{name}}</Text>
+    <ProcNumber>{{number|default("X.X.XXX")}}</ProcNumber>
+    <Text>{{name}}</Text>
 </ProcTitle>
 <TimeRequirement>
     <?xm-replace_text {Time Requirement}?>
@@ -22,48 +23,68 @@
     <ListTitle>
         <Text>LOCATION:</Text>
     </ListTitle>
+    {% for line in location %}
     <Para>
-        {{location}}
+        <text>{{line}}</text>
     </Para>
-    <Para>
-        <Text>Stowed: </Text>
-        {{stowage}}
-    </Para>
+    {% endfor %}
 </ItemizedList>
 <ItemizedList>
     <ListTitle>
-    <Text>DURATION:</Text>
+        <Text>DURATION:</Text>
     </ListTitle>
+    {% for line in duration %}
     <Para>
-        <Text>{{duration}}</Text>
+        <Text>{{line}}</Text>
     </Para>
+    {% endfor %}
 </ItemizedList>
 <ItemizedList>
     <ListTitle>
         <Text>CREW:</Text>
     </ListTitle>
+    {% for line in crewRequired %}
     <Para>
-        <Text>{{crewRequired}}</Text>
+        <Text>{{line}}</Text>
     </Para>
-    <Para>
-        <Text>One (all other steps)</Text>
-    </Para>
+    {% endfor %}
 </ItemizedList>
 <ToolsPartsMaterials>
     <Parts>
-        {{parts}}
+    {% for part in parts %}
+        <ToolsItem toolId="it1">
+            <ToolsItemName>
+                <Text>{{parts[loop.index0].toolName}}</Text>
+            </ToolsItemName>
+            <PartNumber>
+                <Text>{{parts[loop.index0].partNumber}}</Text>
+            </PartNumber>
+        </ToolsItem>
+    {% endfor %}
     </Parts>
     <Materials>
-        {{materials}}
+    {% for material in materials %}
+        <ToolsItem toolId="it1">
+            <ToolsItemName>
+                <Text>{{materials[loop.index0].toolName}}</Text>
+            </ToolsItemName>
+            <PartNumber>
+                <Text>{{materials[loop.index0].partNumber}}</Text>
+            </PartNumber>
+        </ToolsItem>
+    {% endfor %}
     </Materials>
     <Tools>
         {{tools}}
     </Tools>
 </ToolsPartsMaterials>
 <ItemizedList>
-  <ListTitle>
-<Text>REFERENCED PROCEDURE(S):</Text>
-</ListTitle> <Para>
-<Text>{{referencedProcedures}}</Text>
-</Para>
+    <ListTitle>
+        <Text>REFERENCED PROCEDURE(S):</Text>
+    </ListTitle>
+{% for line in referencedProcedures %}
+    <Para>
+        <Text>{{referencedProcedures}}</Text>
+    </Para>
+{% endfor %}
 </ItemizedList>

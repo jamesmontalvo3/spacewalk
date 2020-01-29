@@ -1,4 +1,5 @@
 {# Create image #}
+<Step stepId="">
 <StepContent itemId="">
     <Image display="inline">
 <ImageReference alt="{{path}}" height="{{height}}" source="{{path}}" width="{{width}}"/>
@@ -8,3 +9,4 @@
       </ImageTitle>
     </Image>
 </StepContent>
+</Step>

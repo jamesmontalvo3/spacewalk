@@ -94,11 +94,29 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 	}
 
 	writeSeries(series, columnKeys) {
+		let previousActor = '';
+		let previousLocation = '';
 		const steps = [];
 		for (const step of series) {
+			let actor = '';
+			let location = '';
 			step.columnKeys = Array.isArray(columnKeys) ? columnKeys : [columnKeys];
-			const actor = step.actors[0];
-			const location = step.location;
+
+			if (step.actors[0] !== previousActor) {
+				actor = step.actors[0];
+				previousActor = actor;
+				// console.log('found new actor');
+			} else {
+				// console.log('same actor as before');
+				actor = '';
+			}
+			if (step.location !== previousLocation) {
+				location = step.location;
+				previousLocation = location;
+			} else {
+				location = '';
+			}
+
 			steps.push({
 				stepNumber: this.stepNumber,
 				actor: actor,
@@ -111,8 +129,21 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 
 	addImages(images) {
 		const imageXmlArray = [];
-		const imagesPath = this.procedureWriter.program.imagesPath;
-		const buildPath = this.procedureWriter.program.outputPath;
+		const imagesPath = path.join(this.procedureWriter.program.imagesPath);
+		const ipvXmlFolder = [this.procedure.number, this.procedure.uniqueId].join('_');
+		const imagesFolder = [ipvXmlFolder, 'files'].join('_');
+		const ipvXmlFolderBuild = path.join(this.procedureWriter.program.outputPath, ipvXmlFolder);
+		const buildPath = path.join(ipvXmlFolderBuild, imagesFolder);
+
+		// if image folder doesn't exist then make one
+
+		if (!fs.existsSync(ipvXmlFolderBuild)) {
+			fs.mkdirSync(ipvXmlFolderBuild);
+		}
+		if (!fs.existsSync(buildPath)) {
+			fs.mkdirSync(buildPath);
+		}
+
 		for (const imageMeta of images) {
 
 			const imageSrcPath = path.join(imagesPath, imageMeta.path);
@@ -136,7 +167,7 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 			}
 
 			const image = nunjucks.render('ipv-xml/image.xml', {
-				path: path.join('build', imageMeta.path),
+				path: path.join(imagesFolder, imageMeta.path),
 				width: imageSize.width,
 				height: imageSize.height
 				// todo add fields for image number, and caption
@@ -215,7 +246,7 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 
 		return nunjucks.render('ipv-xml/step-text.xml', {
 			level: options.level,
-			actorText,
+			actorText: options.actor,
 			stepText: texts.join('')
 		});
 	}

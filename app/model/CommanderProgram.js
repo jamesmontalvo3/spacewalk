@@ -231,7 +231,7 @@ module.exports = class CommanderProgram extends Program {
 		}
 
 		if (this.ipvXml) {
-			this.renderBasicFormat(procedure, IpvXmlProcedureWriter, 'IPV XML', 'ipv.xml');
+			this.renderBasicFormat(procedure, IpvXmlProcedureWriter, 'IPV XML', 'xml');
 		}
 
 		if (this.html) {
@@ -245,10 +245,21 @@ module.exports = class CommanderProgram extends Program {
 		const writer = new WriterClass(this, procedure);
 		writer.renderIntro();
 		writer.renderTasks();
-		writer.writeFile(path.join(
-			this.outputPath,
-			`${procedure.filename}.${extension}`
-		));
+
+		let writeFileLocation = '';
+		if (formatName === 'IPV XML') {
+			writeFileLocation = path.join(
+				this.outputPath,
+				[procedure.number, procedure.uniqueId].join('_'),
+				`${procedure.filename}.${extension}`
+			);
+		} else {
+			writeFileLocation = path.join(
+				this.outputPath,
+				`${procedure.filename}.${extension}`
+			);
+		}
+		writer.writeFile(writeFileLocation);
 	}
 
 	serveMaestroWeb(projectPath, options) {

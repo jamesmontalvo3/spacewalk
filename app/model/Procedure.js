@@ -44,6 +44,9 @@ module.exports = class Procedure {
 		this.location = '';
 		this.duration = '';
 		this.crewRequired = '';
+		this.parts = [];
+		this.materials = [];
+		this.tools = [];
 		this.referencedProcedures = '';
 		this.filename = '';
 		this.actors = [];
@@ -257,6 +260,8 @@ module.exports = class Procedure {
 		this.setName(procDef.procedure_name);
 		this.number = procDef.procedure_number;
 		if (procDef.metaData) {
+			const ipvFileName = [procDef.procedure_number, procDef.metaData.uniqueid].join('_');
+			this.filename = filenamify(ipvFileName.replace(/\s+/g, '_'));
 			this.uniqueId = procDef.metaData.uniqueid;
 			this.book = procDef.metaData.book;
 			this.applicability = procDef.metaData.applicability;
@@ -267,7 +272,11 @@ module.exports = class Procedure {
 		this.location = procDef.LOCATION;
 		this.duration = procDef.DURATION;
 		this.crewRequired = procDef.CREW;
-		this.referencedProcedures = procDef.referenced_procedure;
+		this.parts = procDef.parts;
+		this.materials = procDef.materials;
+		console.log(this.materials);
+		this.tools = procDef.tools;
+		this.referencedProcedures = procDef.referencedProcedures;
 
 		if (procDef.columns) {
 			this.ColumnsHandler.updateColumns(procDef.columns);

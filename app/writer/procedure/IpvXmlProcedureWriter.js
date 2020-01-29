@@ -47,6 +47,9 @@ module.exports = class IpvXmlProcedureWriter extends ProcedureWriter {
 			location: this.procedure.location,
 			duration: this.procedure.duration,
 			crewRequired: this.procedure.crewRequired,
+			parts: this.procedure.parts,
+			materials: this.procedure.materials,
+			tools: this.procedure.tools,
 			referencedProcedures: this.procedure.referencedProcedures,
 			date: this.gitDateToIpvDate(this.program.getGitDate())
 		});
