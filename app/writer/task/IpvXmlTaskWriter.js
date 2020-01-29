@@ -215,17 +215,17 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 			options.columnKeys = [];
 		}
 
-		let actorText = '';
-		if (options.actors.length > 0) {
-			const actorToColumnIntersect = options.actors.filter((value) => {
-				return options.columnKeys.includes(value);
-			});
-			const isPrimeActor = actorToColumnIntersect.length > 0;
+		// let actorText = '';
+		// if (options.actors.length > 0) {
+		// const actorToColumnIntersect = options.actors.filter((value) => {
+		// return options.columnKeys.includes(value);
+		// });
+		// const isPrimeActor = actorToColumnIntersect.length > 0;
 
-			if (!isPrimeActor) {
-				actorText = options.actors[0];
-			}
-		}
+		// if (!isPrimeActor) {
+		// actorText = options.actors[0];
+		// }
+		// }
 
 		const texts = [];
 		if (typeof stepText === 'string') {

@@ -274,7 +274,6 @@ module.exports = class Procedure {
 		this.crewRequired = procDef.CREW;
 		this.parts = procDef.parts;
 		this.materials = procDef.materials;
-		console.log(this.materials);
 		this.tools = procDef.tools;
 		this.referencedProcedures = procDef.referencedProcedures;
 
