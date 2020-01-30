@@ -148,6 +148,7 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 
 			const imageSrcPath = path.join(imagesPath, imageMeta.path);
 			const imageBuildPath = path.join(buildPath, imageMeta.path);
+			const imageText = imageMeta.text;
 			const imageSize = this.scaleImage(
 				getImageFileDimensions(imageSrcPath),
 				imageMeta
@@ -169,7 +170,8 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 			const image = nunjucks.render('ipv-xml/image.xml', {
 				path: path.join(imagesFolder, imageMeta.path),
 				width: imageSize.width,
-				height: imageSize.height
+				height: imageSize.height,
+				imageCaption: imageText
 				// todo add fields for image number, and caption
 			});
 
