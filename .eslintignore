@@ -1,2 +1,2 @@
 build/*
-app/web/crate/**/*
+app/web/crate/pkg/*

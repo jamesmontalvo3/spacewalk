@@ -2,11 +2,10 @@
     "editor.rulers": [
         100
     ],
-    "eslint.autoFixOnSave": true,
     "files.insertFinalNewline": true,
     "editor.codeActionsOnSave": {
         "source.fixAll.eslint": true
     },
     "rust-client.enableMultiProjectSetup": true,
-    "rust-client.nestedMultiRootConfigInOutermost": false
+    "rust-client.nestedMultiRootConfigInOutermost": false,
 }
