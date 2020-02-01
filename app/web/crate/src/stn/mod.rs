@@ -13,10 +13,6 @@ fn default_execution_uncertainty() -> f64 {
     0.1
 }
 
-// fn print_constraint_table(ct: &HashMap<(i32, i32), f64>) {
-//   // TOOD
-// }
-
 #[wasm_bindgen]
 #[derive(Debug, Default, Deserialize, Serialize)]
 pub struct RegistrationOptions {
