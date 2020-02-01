@@ -105,6 +105,7 @@ impl BitXorAssign for Interval {
 }
 
 // TODO: would be cool to do `in`, <, > operators too
+// https://doc.rust-lang.org/std/cmp/index.html
 
 #[cfg(test)]
 mod tests {
