@@ -24,7 +24,8 @@ module.exports = {
 		// for STNs
 		new WasmPackPlugin({
 			crateDirectory: path.resolve(__dirname, 'app', 'web', 'crate'),
-			forceWatch: true
+			forceWatch: true,
+			extraArgs: '--no-typescript --target no-modules'
 		}),
 		// The following modules don't make sense in the browser context. Replace them with dummies
 		// or replacements that provide functionality in the browser.

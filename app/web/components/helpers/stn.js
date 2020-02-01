@@ -6,7 +6,7 @@ let wasmModule;
  * Get the collection of STN tools written in Rust/WASM.
  * @return {Promise<{STN: STN, Interval: Interval}>}
  */
-export const getSTNTools = () => new Promise((resolve, reject) => {
+export default () => new Promise((resolve, reject) => {
 	if (wasmModule) {
 		resolve(wasmModule);
 		return;
