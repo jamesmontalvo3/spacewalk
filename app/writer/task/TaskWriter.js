@@ -2,6 +2,9 @@
 
 const consoleHelper = require('../../helpers/consoleHelper');
 const Abstract = require('../../helpers/Abstract');
+const envHelper = require('../../helpers/envHelper');
+const path = require('path');
+const fs = require('fs');
 
 module.exports = class TaskWriter extends Abstract {
 
@@ -107,6 +110,24 @@ module.exports = class TaskWriter extends Abstract {
 
 		imgWarnings.flush(desiredImage.path);
 		return scaledDims;
+	}
+
+	moveImages(imageMeta, buildPath, imagesPath) {
+		// copy image from ./images to ./build
+		// Do this asynchronously...no need to wait
+		// Also, super lazy: if the image already exists don't copy it again
+		const imageBuildPath = path.join(buildPath, imageMeta.path);
+		const imageSrcPath = path.join(imagesPath, imageMeta.path);
+		if (envHelper.isNode && !fs.existsSync(imageBuildPath)) {
+			fs.copyFile(imageSrcPath, imageBuildPath, (err) => {
+				if (err) {
+					// for now don't throw errors on this. Allow build to finish
+					consoleHelper.warn(err);
+				}
+				consoleHelper.success(`Image ${imageMeta.path} transferred to build directory`);
+			});
+		}
+
 	}
 
 	writeDivisions() {
