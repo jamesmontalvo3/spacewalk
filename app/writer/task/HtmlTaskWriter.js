@@ -43,13 +43,6 @@ module.exports = class HtmlTaskWriter extends TaskWriter {
 		return imageHtmlArray;
 	}
 
-	addParagraph(params = {}) {
-		if (!params.text) {
-			params.text = '';
-		}
-		return `<p>${params.text}</p>`;
-	}
-
 	addBlock(blockType, blockLines) {
 
 		const blockTable = nunjucks.render('block-table.html', {

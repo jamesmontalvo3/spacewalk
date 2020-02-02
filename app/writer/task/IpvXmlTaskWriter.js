@@ -42,7 +42,7 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 
 			const actorStepData = division.subscenes[actor];
 
-			// returns array of step HTML
+			// returns array of step XML
 			const series = this.writeSeries(actorStepData);
 
 			for (const stepInfo of series) {
@@ -167,13 +167,6 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 		return imageXmlArray;
 	}
 
-	addParagraph(params = {}) {
-		if (!params.text) {
-			params.text = '';
-		}
-		return `<p>${params.text}</p>`;
-	}
-
 	addBlock(blockType, blockLines) {
 
 		const blockTable = nunjucks.render('ipv-xml/block-table.xml', {
@@ -187,7 +180,7 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 	}
 
 	/**
-	 * ! TBD a description
+	 * Creates text string for step
 	 * @param {*} stepText        Text to turn into a step
 	 * @param {*} options         options = { level: 0, actors: [], columnKey: "" }
 	 * @return {string}
@@ -202,18 +195,6 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 		if (!options.columnKeys) {
 			options.columnKeys = [];
 		}
-
-		// let actorText = '';
-		// if (options.actors.length > 0) {
-		// const actorToColumnIntersect = options.actors.filter((value) => {
-		// return options.columnKeys.includes(value);
-		// });
-		// const isPrimeActor = actorToColumnIntersect.length > 0;
-
-		// if (!isPrimeActor) {
-		// actorText = options.actors[0];
-		// }
-		// }
 
 		const texts = [];
 		if (typeof stepText === 'string') {
@@ -240,7 +221,7 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 	}
 
 	addCheckStepText(stepText, level, parent) {
-		return nunjucks.render('ipv-xml/checkbox-step-text.html', {
+		return nunjucks.render('ipv-xml/checkbox-step-text.xml', {
 			parent,
 			stepText: this.textTransform.transform(stepText).join(''),
 			level

@@ -59,6 +59,13 @@ module.exports = class TaskWriter extends Abstract {
 		return img;
 	}
 
+	addParagraph(params = {}) {
+		if (!params.text) {
+			params.text = '';
+		}
+		return `<p>${params.text}</p>`;
+	}
+
 	scaleImage(sourceFileDims, desiredImage) {
 		const widthToHeightRatio = sourceFileDims.width / sourceFileDims.height;
 
