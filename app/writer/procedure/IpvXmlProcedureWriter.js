@@ -1,11 +1,6 @@
 'use strict';
 
-const path = require('path');
-const fs = require('fs');
-
 const nunjucks = require('../../model/nunjucksEnvironment');
-const consoleHelper = require('../../helpers/consoleHelper');
-
 const ProcedureWriter = require('./ProcedureWriter');
 const IpvXmlTaskWriter = require('../task/IpvXmlTaskWriter');
 
@@ -70,13 +65,6 @@ module.exports = class IpvXmlProcedureWriter extends ProcedureWriter {
 	// duration: this.getTaskDurationDisplay(task)
 	// });
 	// }
-
-	// ! FIXME? This is a direct copy from HtmlProcedureWriter
-	writeFile(filepath) {
-		const relativeFilepath = path.relative(process.cwd(), filepath);
-		fs.writeFileSync(filepath, this.wrapDocument());
-		consoleHelper.success(`SUCCESS: ${relativeFilepath} written!`);
-	}
 
 	genFooter() {
 		return nunjucks.render('ipv-xml/procedure-footer.html', {

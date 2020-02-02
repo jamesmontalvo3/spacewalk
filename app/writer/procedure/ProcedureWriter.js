@@ -2,6 +2,9 @@
 
 const clonedeep = require('lodash/cloneDeep');
 const Abstract = require('../../helpers/Abstract');
+const path = require('path');
+const consoleHelper = require('../../helpers/consoleHelper');
+const fs = require('fs');
 
 module.exports = class ProcedureWriter extends Abstract {
 
@@ -15,6 +18,12 @@ module.exports = class ProcedureWriter extends Abstract {
 		} else {
 			this.procedure = procedure;
 		}
+	}
+
+	writeFile(filepath) {
+		const relativeFilepath = path.relative(process.cwd(), filepath);
+		fs.writeFileSync(filepath, this.wrapDocument());
+		consoleHelper.success(`SUCCESS: ${relativeFilepath} written!`);
 	}
 
 	getTaskDurationDisplay(task) {
