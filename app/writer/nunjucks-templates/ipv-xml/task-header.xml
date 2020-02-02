@@ -1,2 +1,0 @@
-{# Write the table name #}
-<h2 id="{{ taskTitle | idattr }}" data-level="procedure" data-task="{{taskTitle}}">{{procedureName}} - {{taskTitle}} ({{duration}})</h2>

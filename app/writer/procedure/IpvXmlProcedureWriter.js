@@ -58,25 +58,6 @@ module.exports = class IpvXmlProcedureWriter extends ProcedureWriter {
 		});
 	}
 
-	// genHeader(task) {
-	// return nunjucks.render('ipv-xml/task-header.html', {
-	// procedureName: this.procedure.name,
-	// taskTitle: task.title,
-	// duration: this.getTaskDurationDisplay(task)
-	// });
-	// }
-
-	genFooter() {
-		return nunjucks.render('ipv-xml/procedure-footer.html', {
-			programName: this.program.fullName,
-			programURL: this.program.repoURL,
-			procedureName: this.procedure.name,
-			gitDate: this.program.getGitDate(),
-			gitHash: this.program.getGitHash(),
-			gitUncommitted: this.program.getGitUncommittedChanges()
-		});
-	}
-
 	renderTask(task) {
 
 		const taskWriter = new IpvXmlTaskWriter(
