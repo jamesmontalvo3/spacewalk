@@ -1,7 +1,7 @@
 use serde_json::json;
 use std::default::Default;
 use std::fmt::{self, Display, Formatter};
-use std::ops::{Add, AddAssign, BitXor, BitXorAssign, Neg, Sub, SubAssign};
+use std::ops::{Add, AddAssign, BitAnd, BitAndAssign, Neg, Sub, SubAssign};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
@@ -27,12 +27,19 @@ impl Interval {
         JsValue::from_serde(&value).unwrap()
     }
 
+    #[wasm_bindgen]
     pub fn lower(&self) -> f64 {
         self.0
     }
 
+    #[wasm_bindgen]
     pub fn upper(&self) -> f64 {
         self.1
+    }
+
+    #[wasm_bindgen]
+    pub fn contains(&self, v: f64) -> bool {
+        v >= self.lower() && v <= self.upper()
     }
 }
 
@@ -86,26 +93,21 @@ impl SubAssign for Interval {
     }
 }
 
-// l_1, u_1] ^ [l_2, u_2] = [\max(l_1, l_2), \min(u_1, u_2)]
-// Union is not a BitXor operation, but I want to use the ^ operator anyway
-impl BitXor for Interval {
+// l_1, u_1] & [l_2, u_2] = [\max(l_1, l_2), \min(u_1, u_2)]
+impl BitAnd for Interval {
     type Output = Interval;
 
-    fn bitxor(self, other: Interval) -> Interval {
+    fn bitand(self, other: Interval) -> Interval {
         Interval(self.0.max(other.0), self.1.min(other.1))
     }
 }
 
-// l_1, u_1] ^= [l_2, u_2] == [\max(l_1, l_2), \min(u_1, u_2)]
-// Union is not a BitXor operation, but I want to use the ^= operator anyway
-impl BitXorAssign for Interval {
-    fn bitxor_assign(&mut self, other: Interval) {
+// l_1, u_1] &= [l_2, u_2] = [\max(l_1, l_2), \min(u_1, u_2)]
+impl BitAndAssign for Interval {
+    fn bitand_assign(&mut self, other: Interval) {
         *self = Interval(self.0.max(other.0), self.1.min(other.1))
     }
 }
-
-// TODO: would be cool to do `in`, <, > operators too
-// https://doc.rust-lang.org/std/cmp/index.html
 
 #[cfg(test)]
 mod tests {
@@ -273,7 +275,7 @@ mod tests {
         ];
 
         for case in cases.iter() {
-            let res = case.in1 ^ case.in2;
+            let res = case.in1 & case.in2;
 
             assert_eq!(case.out, res, "{} ^ {} == {}", case.in1, case.in2, case.out);
         }
@@ -301,7 +303,7 @@ mod tests {
         ];
 
         for case in cases.iter_mut() {
-            case.in1 ^= case.in2;
+            case.in1 &= case.in2;
 
             assert_eq!(
                 case.out, case.in1,
@@ -317,7 +319,7 @@ mod tests {
         let i2 = Interval::new(15., 15.);
         let i3 = Interval::new(30., 40.);
 
-        let res = i1 ^ (i2 + i3);
+        let res = i1 & (i2 + i3);
         assert_eq!(
             res,
             Interval::new(45., 50.),

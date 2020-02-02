@@ -222,8 +222,7 @@ fn commit_and_tighten(stn: &mut STN, node_id: i32, as_performed: f64) -> Result<
         None => return Err(format!("cannot find bounds for node_id {}", node_id)),
     };
 
-    // check that as_performed falls within the node's bounds
-    if as_performed < b.lower() || as_performed > b.upper() {
+    if !b.contains(as_performed) {
         return Err(format!(
             "as_performed value {} for node ID {} is not in bounds {}",
             as_performed, node_id, b
@@ -253,7 +252,7 @@ fn commit_and_tighten(stn: &mut STN, node_id: i32, as_performed: f64) -> Result<
         let interval_to_neighbor = Interval::new(-lower, upper);
 
         // actually update the bounds on the neighbor
-        let updated_bounds = b_i ^ (b_as_performed + interval_to_neighbor);
+        let updated_bounds = b_i & (b_as_performed + interval_to_neighbor);
         stn.bounds.insert(i, updated_bounds);
     }
 
