@@ -202,8 +202,6 @@ module.exports = class CommanderProgram extends Program {
 
 	generateProcedureFormats(file) {
 
-		console.log(`Generating procedure from ${file}`);
-
 		const procedureFile = path.join(this.procedurePath, file);
 
 		// Parse the input file
@@ -214,7 +212,6 @@ module.exports = class CommanderProgram extends Program {
 		}
 
 		if (this.evaDocx) {
-			console.log('Creating EVA format');
 			const eva = new EvaDocxProcedureWriter(this, procedure);
 
 			eva.renderIntro(() => {
