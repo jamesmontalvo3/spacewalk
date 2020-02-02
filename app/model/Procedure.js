@@ -269,13 +269,13 @@ module.exports = class Procedure {
 			this.procCode = procDef.metaData.procCode;
 		}
 		this.objective = procDef.procedure_objective;
-		this.location = procDef.LOCATION;
-		this.duration = procDef.DURATION;
-		this.crewRequired = procDef.CREW;
+		this.location = procDef.location;
+		this.duration = procDef.duration;
+		this.crewRequired = procDef.crew;
 		this.parts = procDef.parts;
 		this.materials = procDef.materials;
 		this.tools = procDef.tools;
-		this.referencedProcedures = procDef.referencedProcedures;
+		this.referencedProcedures = procDef.referencedprocedures;
 
 		if (procDef.columns) {
 			this.ColumnsHandler.updateColumns(procDef.columns);
