@@ -220,13 +220,12 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 		});
 	}
 
-	addCheckStepText(stepText, level, parent) {
-		return nunjucks.render('ipv-xml/checkbox-step-text.xml', {
-			parent,
-			stepText: this.textTransform.transform(stepText).join(''),
-			level
-		});
-	}
+	// addCheckStepText(stepText, level, parent) {
+	// return nunjucks.render('ipv-xml/checkbox-step-text.xml', {
+	// parent,
+	// level
+	// });
+	// }
 
 	addTitleText(title) {
 		const subtaskTitle = nunjucks.render('ipv-xml/subtask-title.xml', {

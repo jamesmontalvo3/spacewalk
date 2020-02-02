@@ -33,8 +33,7 @@ module.exports = class HtmlTaskWriter extends TaskWriter {
 
 			const image = nunjucks.render('image.html', {
 				path: path.join('build', imageMeta.path),
-				width: imageSize.width,
-				height: imageSize.height
+				width: imageSize.width, height: imageSize.height
 			});
 
 			imageHtmlArray.push(image);
