@@ -6,6 +6,7 @@
     "editor.codeActionsOnSave": {
         "source.fixAll.eslint": true
     },
+    "eslint.lintTask.options": "-c ${workspaceRoot}/.eslintrc.json",
     "rust-client.enableMultiProjectSetup": true,
     "rust-client.nestedMultiRootConfigInOutermost": false,
 }

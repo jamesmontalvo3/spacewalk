@@ -3,15 +3,24 @@
 
 import { assert } from 'chai';
 import getSTNTools from './stn';
-import all from '../../crate/pkg';
 
 describe.only('Simple Temporal Networks', () => {
-	it('should expose an STN class', async() => {
-		console.log(all);
-		const STN = await getSTNTools();
-		// const stn = new STN();
-		assert.equal(STN, true, 'STN exists?');
-		assert(true === false, 'testing!');
-		// assert(stn === 'STN', 'STN class exists');
+	describe('STN', () => {
+		it('should initalize with a reasonable elapsed time', async () => {
+			const { STN } = await getSTNTools();
+			const stn = new STN();
+			assert(stn.toString() === '0 elapsed time');
+		});
+	});
+
+	describe('Interval', () => {
+		it('should initialize with lower, upper bounds', async () => {
+			const lower = 1;
+			const upper = 2;
+			const { Interval } = await getSTNTools();
+			const interval = new Interval(lower, upper);
+			assert(interval.lower() === lower);
+			assert(interval.upper() === upper);
+		});
 	});
 });

@@ -11,8 +11,6 @@ require:
   # Required in order to interpret files with React/JSX
   - '@babel/register'
   - '@babel/preset-env'
-  # - '@babel/plugin-transform-runtime'
-  # - '@babel/plugin-syntax-dynamic-import'
 
 
   # Setup a mock DOM for React to use

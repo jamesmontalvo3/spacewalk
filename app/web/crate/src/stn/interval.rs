@@ -41,6 +41,11 @@ impl Interval {
     pub fn contains(&self, v: f64) -> bool {
         v >= self.lower() && v <= self.upper()
     }
+
+    #[wasm_bindgen(js_name = isValid)]
+    pub fn is_valid(&self) -> bool {
+        self.lower() <= self.upper()
+    }
 }
 
 impl Display for Interval {

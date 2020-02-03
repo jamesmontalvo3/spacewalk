@@ -10,7 +10,7 @@ const ProcedureViewerComponent = require('./pages/ProcedureViewerComponent');
 const ProcedureSelectorComponent = require('./pages/ProcedureSelectorComponent');
 const ReactProcedureWriter = require('../../writer/procedure/ReactProcedureWriter');
 
-const { getSTNTools } = require('./helpers/stn');
+const getSTNTools = require('./helpers/stn');
 
 const changes = {
 	lastDefinitionYaml: null,
@@ -89,46 +89,47 @@ class App extends React.Component {
 	async componentDidMount() {
 		const { STN } = await getSTNTools();
 		const stn = new STN();
-		const data = {
-			nodes: [
-				{ id: 0, label: 'Start of Egress/Setup for EV1' },
-				{ id: 1, label: 'Start of Egress/Setup for EV2' },
-				{ id: 2, label: 'Start of Some Task for EV1' },
-				{ id: 3, label: 'Start of Some Task for EV2' },
-				{ id: 4, label: 'Start of Cleanup/Ingress for EV1' },
-				{ id: 5, label: 'Start of Cleanup/Ingress for EV2' },
-				{ id: 6, label: 'End of procedure for EV1' },
-				{ id: 7, label: 'End of procedure for EV2' }
-			],
-			edges: [
-				{ source: 0, target: 2, minutes: 60, actor: 'EV1' },
-				{
-					source: 0, target: 1, minutes: 0,
-					actor: 'EV1 --> EV2 sync offset for Egress/Setup'
-				},
-				{ source: 1, target: 3, minutes: 45, actor: 'EV2' },
-				{ source: 2, target: 4, minutes: 45, actor: 'EV1' },
-				{
-					source: 2, target: 3, minutes: 15,
-					actor: 'EV1 --> EV2 sync offset for Some Task'
-				},
-				{ source: 3, target: 5, minutes: 60, actor: 'EV2' },
-				{ source: 4, target: 6, minutes: 30, actor: 'EV1' },
-				{
-					source: 4, target: 5, minutes: 0,
-					actor: 'EV1 --> EV2 sync offset for Cleanup/Ingress'
-				},
-				{ source: 5, target: 7, minutes: 30, actor: 'EV2' },
-				{
-					source: 6, target: 7, minutes: 0,
-					actor: 'EV1 --> EV2 sync offset for procedure end'
-				}
-			]
-		};
+		console.log(stn.toString());
+		// const data = {
+		// 	nodes: [
+		// 		{ id: 0, label: 'Start of Egress/Setup for EV1' },
+		// 		{ id: 1, label: 'Start of Egress/Setup for EV2' },
+		// 		{ id: 2, label: 'Start of Some Task for EV1' },
+		// 		{ id: 3, label: 'Start of Some Task for EV2' },
+		// 		{ id: 4, label: 'Start of Cleanup/Ingress for EV1' },
+		// 		{ id: 5, label: 'Start of Cleanup/Ingress for EV2' },
+		// 		{ id: 6, label: 'End of procedure for EV1' },
+		// 		{ id: 7, label: 'End of procedure for EV2' }
+		// 	],
+		// 	edges: [
+		// 		{ source: 0, target: 2, minutes: 60, actor: 'EV1' },
+		// 		{
+		// 			source: 0, target: 1, minutes: 0,
+		// 			actor: 'EV1 --> EV2 sync offset for Egress/Setup'
+		// 		},
+		// 		{ source: 1, target: 3, minutes: 45, actor: 'EV2' },
+		// 		{ source: 2, target: 4, minutes: 45, actor: 'EV1' },
+		// 		{
+		// 			source: 2, target: 3, minutes: 15,
+		// 			actor: 'EV1 --> EV2 sync offset for Some Task'
+		// 		},
+		// 		{ source: 3, target: 5, minutes: 60, actor: 'EV2' },
+		// 		{ source: 4, target: 6, minutes: 30, actor: 'EV1' },
+		// 		{
+		// 			source: 4, target: 5, minutes: 0,
+		// 			actor: 'EV1 --> EV2 sync offset for Cleanup/Ingress'
+		// 		},
+		// 		{ source: 5, target: 7, minutes: 30, actor: 'EV2' },
+		// 		{
+		// 			source: 6, target: 7, minutes: 0,
+		// 			actor: 'EV1 --> EV2 sync offset for procedure end'
+		// 		}
+		// 	]
+		// };
 
-		const numEdgesCreated = stn.registerGraph(data);
+		// const numEdgesCreated = stn.registerGraph(data);
 
-		console.log(numEdgesCreated);
+		// console.log(numEdgesCreated);
 	}
 
 	setProcedure = (procObject) => {
@@ -181,11 +182,11 @@ class App extends React.Component {
 							procedure={this.state.procedure}
 							setProcedure={this.setProcedure} />
 					) : (
-						<ProcedureViewerComponent
-							procedure={this.state.procedure}
-							getProcedureWriter={this.getProcedureWriter}
-						/>
-					)}
+							<ProcedureViewerComponent
+								procedure={this.state.procedure}
+								getProcedureWriter={this.getProcedureWriter}
+							/>
+						)}
 				</div>
 			</div>
 		);
