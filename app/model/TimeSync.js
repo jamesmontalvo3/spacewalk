@@ -56,7 +56,7 @@ function syncRequired(activity) {
 function traverse(activity, role, direction, continueWhileTrueFn) {
 	direction = direction === 'prev' ? 'prevTask' : 'nextTask';
 	if (!continueWhileTrueFn) {
-		continueWhileTrueFn = function () {
+		continueWhileTrueFn = function() {
 			return true;
 		};
 	}
@@ -109,7 +109,7 @@ function updateActivityStartTime(activity, stopAt = null) {
 				// a startTime is found return the task without a startTime found prior to it.
 				const earliestActivityThatNeedsStartTime = traverse(
 					rolePrevAct, role, 'prev',
-					function (task) {
+					function(task) {
 						return task.actorRolesDict[role].startTime === null;
 					}
 				);
@@ -196,7 +196,7 @@ function syncActivity(activity, stopAt = null) {
 			// sync is found, and return the task found before that
 			const earliestActivityThatNeedsSync = traverse(
 				rolePrevAct, role, 'prev',
-				function (previousTask) {
+				function(previousTask) {
 					return syncRequired(previousTask);
 				}
 			);
@@ -497,7 +497,6 @@ module.exports = class TimeSync {
 							source: taskToIndexMap.get(task)[otherActor],
 							target: taskToIndexMap.get(task)[actor],
 
-							// FIXME: subtraction may need to be reversed here. I didn't verify.
 							minutes: Duration.subtract(
 								task.actorRolesDict[actor].duration.offset,
 								task.actorRolesDict[otherActor].duration.offset

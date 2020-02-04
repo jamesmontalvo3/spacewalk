@@ -4,17 +4,17 @@
 import { assert } from 'chai';
 import getSTNTools from './stn';
 
-describe.only('Simple Temporal Networks', () => {
+describe('Simple Temporal Networks', () => {
 	describe('STN', () => {
-		it('should initalize with a reasonable elapsed time', async () => {
+		it('should initalize with no nodes, no edges', async() => {
 			const { STN } = await getSTNTools();
 			const stn = new STN();
-			assert(stn.toString() === '0 elapsed time');
+			assert(stn.toString() === '0 nodes, 0 edges');
 		});
 	});
 
 	describe('Interval', () => {
-		it('should initialize with lower, upper bounds', async () => {
+		it('should initialize with lower, upper bounds', async() => {
 			const lower = 1;
 			const upper = 2;
 			const { Interval } = await getSTNTools();
@@ -24,3 +24,5 @@ describe.only('Simple Temporal Networks', () => {
 		});
 	});
 });
+
+// TODO: REMOVE mocha-webpack!!!

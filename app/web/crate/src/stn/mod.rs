@@ -48,7 +48,6 @@ pub struct STN {
     constraint_table: HashMap<(i32, i32), f64>,
     // TODO: implement bounds like so?
     bounds: HashMap<i32, Interval>,
-    elapsed_time: f64,
 }
 
 /// Build the distance graph. Returns (#nodes, #edges) tuple
@@ -272,7 +271,6 @@ impl STN {
             node_indices: HashMap::new(),
             distance_graph: Graph::new(),
             constraint_table: HashMap::new(),
-            elapsed_time: 0.,
         }
     }
 
@@ -293,7 +291,7 @@ impl STN {
 
     #[wasm_bindgen(js_name = toString)]
     pub fn to_string(&self) -> String {
-        format!("{} elapsed time", self.elapsed_time)
+        format!("{} nodes, {} edges", self.node_indices.len(), self.distance_graph.edge_count())
     }
 
     /// Commit an as-performed time and update bounds

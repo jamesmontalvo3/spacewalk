@@ -150,12 +150,14 @@ describe('TimeSync', function() {
 		});
 	});
 
-	describe('getStnGraph()', function() {
+	describe.only('getStnGraph()', function() {
 		const testCases = ['simple', 'complex-times'];
 		for (const testCase of testCases) {
 			it(`should create the expected graph for ${testCase} case`, function() {
 				const { timeSync, stnGraphPath } = doSetup(testCase);
 				const graph = timeSync.getStnGraph();
+				// TODO: write new output to file
+				console.log(fs.readFileSync(stnGraphPath).toString());
 				const expected = JSON.parse(fs.readFileSync(stnGraphPath).toString());
 				assert.deepStrictEqual(graph, expected);
 			});

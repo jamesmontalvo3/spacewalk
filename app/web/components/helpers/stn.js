@@ -1,6 +1,7 @@
 /** import async WASM code */
 
 let wasmModule;
+// const { STN } = require('../../crate/pkg');
 
 /**
  * Get the collection of STN tools written in Rust/WASM.
