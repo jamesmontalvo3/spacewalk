@@ -26,6 +26,7 @@ module.exports = class Server {
 
 			// Serve application resources
 			{ webPath: 'maestro', localBase: __dirname, localRelative: '../../build' },
+			{ webPath: 'maestro-assets', localBase: __dirname, localRelative: '../assets' },
 			{
 				webPath: 'maestro-views',
 				localBase: __dirname,
@@ -62,31 +63,26 @@ module.exports = class Server {
 		return this;
 	}
 
-	handleFileUpdates = (req, res) => {
-		switch (req.params) {
-			case 'tasks':
-
-				break;
-			case 'procedures':
-
-				break;
-			default:
-				break;
-		}
+	validateFileRequest(req, filenameParam = 'filename') {
 
 		if (['tasks', 'procedures'].indexOf(req.params.filetype) === -1) {
 			throw new Error('file type editing can only be performed on tasks and procedures');
 		}
 
-		if (req.params.filename.indexOf('..') !== -1) {
+		if (req.params[filenameParam].indexOf('..') !== -1) {
 			throw new Error('file names cannot move up a directory by including ..');
 		}
 
-		const filepath = path.join(
+		return path.join(
 			this.program.projectPath,
 			req.params.filetype,
-			req.params.filename
+			req.params[filenameParam]
 		);
+	}
+
+	handleFileUpdates = (req, res) => {
+
+		const filepath = this.validateFileRequest(req);
 
 		console.log(`saving new content to ${filepath}`);
 		// console.log(req.body);
@@ -94,16 +90,49 @@ module.exports = class Server {
 		fs.writeFile(filepath, req.body.yaml, (err) => {
 			if (err) {
 				console.log(err);
-				res.send({ success: false, msg: 'error writing file' });
+				res.send({ success: false, msg: `error writing file ${filepath}` });
 			} else {
-				res.send({ success: true, msg: 'file written' });
+				res.send({ success: true, msg: `file ${filepath} written` });
 			}
 		});
 	}
 
+	handleCheckFileExists = (req, res) => {
+
+		const filepath = this.validateFileRequest(req);
+
+		console.log(`checking if file path exists: ${filepath}`);
+
+		fs.exists(filepath, function(exists) {
+			if (exists) {
+				res.send({ exists: true });
+			} else {
+				res.send({ exists: false });
+			}
+		});
+
+	}
+
+	handleMoveFile = (req, res) => {
+
+		const filepath = this.validateFileRequest(req);
+		const newfilepath = this.validateFileRequest(req, 'newfilename');
+
+		const resultHandler = function(result) {
+			console.log(result);
+			res.send(result);
+		};
+
+		this.program.moveFile(
+			filepath,
+			newfilepath,
+			resultHandler,
+			resultHandler // same action on error
+		);
+	}
+
 	serve() {
 		this.app.get('/', (req, res) => {
-			// res.sendFile(this.baseHtmlFile);
 			res.send(nunjucks.render('maestro-conduct.html', {
 				title: 'Maestro',
 				procedureFiles: this.procedureFiles
@@ -111,6 +140,8 @@ module.exports = class Server {
 		});
 
 		this.app.post('/edit/:filetype/:filename', this.handleFileUpdates);
+		this.app.post('/exists/:filetype/:filename', this.handleCheckFileExists);
+		this.app.post('/move/:filetype/:filename/:newfilename', this.handleMoveFile);
 
 		this.app.listen(this.port, () => {
 			consoleHelper.success(

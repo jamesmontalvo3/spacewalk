@@ -10,8 +10,8 @@ const cloneDeep = require('lodash/cloneDeep');
 
 const CommanderProgram = require('../../model/CommanderProgram');
 const Procedure = require('../../model/Procedure');
-// const TaskRole = require('../app/model/TaskRole');
-const taskRoleGenerator = require('../../../test/generators/taskRoleGenerator');
+const testProcedureGenerator = require('../../../test/generators/testProcedureGenerator');
+
 const Step = require('../../model/Step');
 
 const EvaDocxProcedureWriter = require('../procedure/EvaDocxProcedureWriter');
@@ -293,7 +293,7 @@ describe('EvaDocxTaskWriter', function() {
 	// !        task writers
 	describe('insertStep()', function() {
 
-		let step1, step2;
+		let step1, step2, postDef1, postDef2, step1preInsert;
 
 		before(function() {
 			const definition = {
@@ -309,17 +309,30 @@ describe('EvaDocxTaskWriter', function() {
 			const def1 = cloneDeep(definition);
 			const def2 = cloneDeep(definition);
 
-			const tr1 = taskRoleGenerator.getSingleTaskRole('crewX', 'EV7');
-			const tr2 = taskRoleGenerator.getSingleTaskRole('crewX', 'EV7');
+			const procedure1 = testProcedureGenerator('simple/procedures/proc.yml');
+			const procedure2 = testProcedureGenerator('simple/procedures/proc.yml');
 
-			step1 = new Step(def1, 'EV7', tr1);
-			step2 = new Step(def2, 'EV7', tr2);
+			const series1 = procedure1.tasks[0].concurrentSteps[0].subscenes.EV1;
+			const series2 = procedure2.tasks[0].concurrentSteps[0].subscenes.EV1;
 
+			step1 = new Step(def1, series1);
+			step2 = new Step(def2, series2);
+
+			step1preInsert = cloneDeep(step1);
 			taskWriter.insertStep(step1);
+
+			postDef1 = step1.getDefinition();
+			postDef2 = step2.getDefinition();
 		});
 
-		it('should not modify step object', function() {
-			assert.deepStrictEqual(step1, step2);
+		it('should not modify step definition', function() {
+			assert.deepStrictEqual(postDef1, postDef2);
 		});
+
+		it('should not modify step definition', function() {
+			assert.deepStrictEqual(step1, step1preInsert);
+		});
+
 	});
+
 });

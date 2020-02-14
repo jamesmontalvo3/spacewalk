@@ -9,6 +9,7 @@ const ColumnsHandler = require('./ColumnsHandler');
 
 describe('ColumnsHandler', function() {
 
+	// eslint-disable-next-line require-jsdoc
 	function initializeTwoColumns() {
 		const ch = new ColumnsHandler();
 		const columnsDef = [

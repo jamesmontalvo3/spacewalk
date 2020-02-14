@@ -83,19 +83,22 @@ describe('SodfDocxTaskWriter', function() {
 			const task = procedure.tasks[0];
 
 			const doAssertions = (divIndex, actor, stepText, seriesIndex = 0) => {
-				const steps = task.concurrentSteps[divIndex].subscenes[actor];
-				const series = taskWriter.writeSeries(steps);
+				const series = task.concurrentSteps[divIndex].subscenes[actor];
+				const seriesDisplay = taskWriter.writeSeries(series);
 
-				assert.strictEqual(series[seriesIndex].actor, actor);
-				assert.lengthOf(series[seriesIndex].stepParagraphs, 1);
-				assert.instanceOf(series[seriesIndex].stepParagraphs[0], docx.Paragraph);
-				assert.instanceOf(series[seriesIndex].stepParagraphs[0].root[1], docx.TextRun);
+				assert.strictEqual(seriesDisplay[seriesIndex].actor, actor);
+				assert.lengthOf(seriesDisplay[seriesIndex].stepParagraphs, 1);
+				assert.instanceOf(seriesDisplay[seriesIndex].stepParagraphs[0], docx.Paragraph);
+				assert.instanceOf(
+					seriesDisplay[seriesIndex].stepParagraphs[0].root[1],
+					docx.TextRun
+				);
 				assert.strictEqual(
-					series[seriesIndex].stepParagraphs[0].root[1].root[1].constructor.name,
+					seriesDisplay[seriesIndex].stepParagraphs[0].root[1].root[1].constructor.name,
 					'Text' // docx.Text class not exposed
 				);
 				assert.strictEqual(
-					series[seriesIndex].stepParagraphs[0].root[1].root[1].root[1], stepText);
+					seriesDisplay[seriesIndex].stepParagraphs[0].root[1].root[1].root[1], stepText);
 			};
 
 			doAssertions(0, 'EV1', 'step 1');

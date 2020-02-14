@@ -32,10 +32,13 @@ module.exports = class TaskRole {
 	}
 
 	getDefinition() {
-		return {
+		const def = {
 			name: this.name,
-			description: this.description,
 			duration: this.duration ? this.duration.getDefinition() : { seconds: 0 }
 		};
+		if (this.description) {
+			def.description = this.description;
+		}
+		return def;
 	}
 };

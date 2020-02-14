@@ -71,7 +71,9 @@ module.exports = class StepModule extends Abstract {
 		if (!this.doAlterStepReact) {
 
 			// Require the {ClassName}React.js file
-			const reactStepModuleFunctions = require(`./${this.constructor.name}React`);
+			const reactStepModuleFunctions = (window && window.isElectron) ?
+				window.maestro.reactStepModuleFunctions[`${this.constructor.name}React`] :
+				require(`./${this.constructor.name}React`);
 
 			// Add doAlterStepReact() to this instance
 			this.doAlterStepReact = reactStepModuleFunctions.doAlterStepReact;

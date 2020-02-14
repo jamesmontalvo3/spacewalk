@@ -5,6 +5,7 @@ const path = require('path');
 const docx = require('docx');
 
 const consoleHelper = require('../../helpers/consoleHelper');
+const exitCodes = require('../../helpers/exitCodes');
 
 const styles = require('./styles.js');
 const ProcedureWriter = require('./ProcedureWriter');
@@ -69,8 +70,27 @@ module.exports = class DocxProcedureWriter extends ProcedureWriter {
 
 		console.log(`Starting to write ${relativeFilepath}`);
 		docx.Packer.toBuffer(this.doc).then((buffer) => {
-			fs.writeFileSync(filepath, buffer);
-			consoleHelper.success(`SUCCESS: ${relativeFilepath} written!`);
+			try {
+				fs.writeFileSync(filepath, buffer);
+				consoleHelper.success(`SUCCESS: ${relativeFilepath} written!`);
+			} catch (err) {
+				if (err && err.code && exitCodes.messageToNumber[err.code]) {
+					if (err.code === 'EBUSY') {
+						consoleHelper.noExitError([
+							'The file following file was busy and could not be modified:',
+							err.path,
+							'Close the file, then try again'
+						]);
+					} else {
+						consoleHelper.noExitError(err);
+					}
+					process.exit(exitCodes.messageToNumber[err.code]);
+				} else {
+					consoleHelper.noExitError('An unhandled error occurred.');
+					consoleHelper.noExitError(err);
+					process.exit(exitCodes.messageToNumber.UNKNOWN);
+				}
+			}
 		});
 	}
 

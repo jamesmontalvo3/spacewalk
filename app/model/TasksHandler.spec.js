@@ -1,5 +1,6 @@
 /* Specify environment to include mocha globals */
 /* eslint-env node, mocha */
+/* eslint-disable require-jsdoc */
 
 'use strict';
 
@@ -37,7 +38,7 @@ describe('TasksHandler', function() {
 			roles: [
 				{
 					name: 'crew',
-					description: '',
+					description: 'TBD',
 					duration: { minutes: 5 }
 				}
 			],
@@ -48,7 +49,7 @@ describe('TasksHandler', function() {
 			roles: [
 				{
 					name: 'crew',
-					description: '',
+					description: 'TBD',
 					duration: { minutes: 10 }
 				}
 			],
@@ -69,8 +70,8 @@ describe('TasksHandler', function() {
 		it('should return definitions equal to original', function() {
 			const withDefTasks = getWithDefinedTasks();
 			const reqs = makeDefinition();
-			reqs[0].color = undefined;
-			reqs[1].color = undefined;
+			reqs[0].color = '#FFFFFF';
+			reqs[1].color = '#FFFFFF';
 			assert.deepStrictEqual(
 				withDefTasks.tasksHandler.getDefinition(),
 				{
@@ -85,8 +86,8 @@ describe('TasksHandler', function() {
 		it('should return requirements definitions equal to original', function() {
 			const tasksHandler = makeTasksHandler();
 			const definition = makeDefinition();
-			definition[0].color = undefined;
-			definition[1].color = undefined;
+			definition[0].color = '#FFFFFF';
+			definition[1].color = '#FFFFFF';
 			assert.deepStrictEqual(tasksHandler.getRequirementsDefinitions(), definition);
 		});
 	});

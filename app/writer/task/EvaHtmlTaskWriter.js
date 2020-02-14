@@ -89,8 +89,8 @@ module.exports = class EvaHtmlTaskWriter extends HtmlTaskWriter {
 		if (preStep) {
 			steps.push(preStep);
 		}
-		for (const step of series) {
-			step.columnKeys = Array.isArray(columnKeys) ? columnKeys : [columnKeys];
+		for (const step of series.steps) {
+			step.props.columnKeys = Array.isArray(columnKeys) ? columnKeys : [columnKeys];
 			steps.push(
 				...this.insertStep(step)
 			);

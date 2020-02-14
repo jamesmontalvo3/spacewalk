@@ -124,6 +124,11 @@ function isAnyOf(needle, haystack) {
 	}
 }
 
+/**
+ * Check if an array is empty. Return false if not an array.
+ * @param {Array} check  Array to check
+ * @return {boolean}
+ */
 function isEmptyArray(check) {
 	if (!Array.isArray(check)) {
 		return false;

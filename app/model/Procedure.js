@@ -12,13 +12,20 @@ const validateSchema = require('../schema/validateSchema');
 const Duration = require('./Duration');
 const TimeSync = require('./TimeSync');
 const consoleHelper = require('../helpers/consoleHelper');
+const Indexer = require('./Indexer');
 
+/**
+ * Get path to task file relative to procedure file, or throw error.
+ *
+ * @param {string} procedureFilePath  Path to procedure file
+ * @param {string} taskFileName       Name of task file at ../tasks/${taskFileName} relative to proc
+ * @return {string}
+ */
 function translatePath(procedureFilePath, taskFileName) {
 	// Look in tasks directory, sister to procedures directory
 	// Someday look in a directory provided by dependency manager, issue #21
 	const taskFilePath = path.join(
-		path.dirname(procedureFilePath),
-		'..',
+		path.dirname(path.dirname(procedureFilePath)),
 		'tasks',
 		taskFileName
 	);
@@ -33,7 +40,7 @@ function translatePath(procedureFilePath, taskFileName) {
 
 module.exports = class Procedure {
 
-	constructor() {
+	constructor(options = {}) {
 		this.name = '';
 		this.number = '';
 		this.uniqueId = '';
@@ -50,22 +57,25 @@ module.exports = class Procedure {
 		this.referencedProcedures = '';
 		this.filename = '';
 		this.actors = [];
+		this.indexer = new Indexer();
 
 		// this.columns = []; // <-- switch to model below instead
-		this.ColumnsHandler = new ColumnsHandler();
+		this.ColumnsHandler = new ColumnsHandler(false, options);
 	}
 
-	getDefinition() {
-
-		const procedure = {
+	getOnlyProcedureDefinition() {
+		return {
 			// eslint-disable-next-line camelcase
 			procedure_name: this.name,
 			columns: this.ColumnsHandler.getDefinition(),
 			tasks: this.TasksHandler.getRequirementsDefinitions()
 		};
+	}
+
+	getDefinition() {
 
 		return {
-			procedureDefinition: procedure,
+			procedureDefinition: this.getOnlyProcedureDefinition(),
 			taskDefinitions: this.TasksHandler.getTaskDefinitions()
 		};
 	}
@@ -216,22 +226,25 @@ module.exports = class Procedure {
 
 	setName(value) {
 		this.name = value;
-		this.filename = filenamify(value.replace(/\s+/g, '_'));
+		this.filename = filenamify(value.replace(/\s+/g, '_')); // FIXME this doesn't have .yml ?!?!
+		// FIXME also how does this jive with this.procedureFile
+		// use helpers/yamlFileNamify
 	}
 
 	/**
 	 * Populates data, reading in the specified file.
-	 * @param {string} fileName The full path to the YAML file
+	 * @param {string} procedureFilepath The full path to the YAML file
 	 * @return {Error|null}
 	 */
-	addProcedureDefinitionFromFile(fileName) {
-		this.procedureFile = fileName;
+	addProcedureDefinitionFromFile(procedureFilepath) {
+		this.procedureFile = path.basename(procedureFilepath);
+		this.procedureFilepath = procedureFilepath;
 
-		if (!fs.existsSync(fileName)) {
-			return new Error(`Could not find file ${fileName}`);
+		if (!fs.existsSync(procedureFilepath)) {
+			return new Error(`Could not find file ${procedureFilepath}`);
 		}
 
-		const procDef = YAML.safeLoad(fs.readFileSync(fileName, 'utf8'));
+		const procDef = YAML.safeLoad(fs.readFileSync(procedureFilepath, 'utf8'));
 
 		const err = this.addProcedureDefinition(procDef);
 		if (err) {
@@ -240,6 +253,21 @@ module.exports = class Procedure {
 
 		this.loadTaskDefinitionsFromFiles();
 		this.setupTimeSync();
+		this.setupIndex();
+	}
+
+	setupIndex() {
+		const indexer = this.indexer;
+		for (const uuid in indexer.index) {
+			if (indexer.index[uuid].type !== 'Step') {
+				continue;
+			}
+			const step = indexer.index[uuid].item;
+			const { prev, next } = step.getAdjacentActivitySteps();
+			const prevUuid = prev ? prev.uuid : null;
+			const nextUuid = next ? next.uuid : null;
+			indexer.alter(uuid, { prevUuid, nextUuid });
+		}
 	}
 
 	/**
@@ -300,7 +328,7 @@ module.exports = class Procedure {
 		for (const task of this.TasksHandler.tasks) {
 			// Since the task file is in relative path to the procedure
 			// file, need to translate it!
-			const taskFileName = translatePath(this.procedureFile, task.file);
+			const taskFileName = translatePath(this.procedureFilepath, task.file);
 			taskDefinitions[task.file] = YAML.safeLoad(fs.readFileSync(taskFileName, 'utf8'));
 		}
 
@@ -367,7 +395,7 @@ module.exports = class Procedure {
 		const roleLatestAct = {};
 
 		// Loop over all tasks and all roles within those tasks
-		for (const currentTask of this.tasks) {
+		for (const currentTask of this.TasksHandler.tasks) {
 			for (const role in currentTask.actorRolesDict) {
 
 				// If the role has a defined latest activity
@@ -402,7 +430,7 @@ module.exports = class Procedure {
 			}
 		}
 
-		this.timeSync = new TimeSync(this.tasks, false);
+		this.timeSync = new TimeSync(this.TasksHandler.tasks, false);
 		this.timeSync.sync();
 		this.taskEndpoints = this.timeSync.endpoints();
 
@@ -418,6 +446,30 @@ module.exports = class Procedure {
 			}
 			return;
 		}
+	}
+
+	getTaskByUuid(uuid, allowMissing = false) {
+		const index = this.TasksHandler.getTaskIndexByUuid(uuid);
+		if (index === -1 || index > this.tasks.length - 1) {
+			if (allowMissing) {
+				return null;
+			} else {
+				throw new Error(`Task with uuid ${uuid} not found`);
+			}
+		}
+		return this.tasks[index];
+	}
+
+	getNumStepsPriorToActivity(activity) {
+		let totalSteps = 0;
+		for (let i = 0; i < this.tasks.length; i++) {
+			if (activity !== this.tasks[i]) {
+				totalSteps += this.tasks[i].getTotalSteps();
+			} else {
+				return totalSteps;
+			}
+		}
+		throw new Error(`Task ${activity.uuid} not within Procedure ${this.procedure_name}`);
 	}
 
 };

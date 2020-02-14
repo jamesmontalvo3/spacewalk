@@ -8,10 +8,9 @@ const SeriesComponent = require('../../web/components/layout/SeriesComponent');
 const getImageFileDimensions = require('image-size');
 const TextTransform = require('../text-transform/TextTransform');
 
-const maestroKey = require('../../web/components/helpers/maestroKey');
 const uuidv4 = require('uuid/v4');
 
-const TaskWriter = require('./HtmlTaskWriter');
+const TaskWriter = require('./TaskWriter');
 const EvaDivisionWriter = require('./EvaDivisionWriter');
 const filters = require('../../helpers/filters');
 
@@ -25,7 +24,8 @@ module.exports = class ReactTaskWriter extends TaskWriter {
 	constructor(task, procedureWriter) {
 		super(task, procedureWriter);
 
-		this.taskColumns = task.getColumns();
+		task.columnsArray = null; // unset this so task.getColumns doesn't short circuit below
+		this.taskColumns = task.getColumns(true, true);
 		this.textTransform = new TextTransform('react');
 
 		this.numCols = this.taskColumns.length;
@@ -53,7 +53,7 @@ module.exports = class ReactTaskWriter extends TaskWriter {
 	}
 
 	// FIXME: duplication from HtmlTaskWriter or something like that
-	writeDivision(division, activityIndex, divisionIndex) {
+	writeDivision(division, activityUuid, divisionUuid) {
 		const divWriter = new EvaDivisionWriter();
 
 		const columns = divWriter.prepareDivision(
@@ -62,13 +62,23 @@ module.exports = class ReactTaskWriter extends TaskWriter {
 
 		for (let c = 0; c < this.numCols; c++) {
 			if (!columns[c]) {
+				// FIXME need a better way to handle this
+				const columnKey = this.task.getColumns()[c];
+
+				// Technically division.addSeries() generates the actual seriesKey (here, columnKey)
+				// since what is passed to addSeries() could be a mix of actors and/or roles. The
+				// returned key is standardized. Here that the input columnKey and realColumnKey
+				// should be the same since we're generating a series specifically for this column.
+				const realColumnKey = division.addSeries(columnKey);
+
+				// FIXME this is confusing af
 				columns[c] = {
 					children: [], // FIXME remove these if the stuff below works...
 					content: [],
 					colspan: 1,
 
-					series: [], // FIXME is this right?
-					columnKeys: [this.task.getColumns()[c]] // ['NONE'] // FIXME
+					series: division.subscenes[realColumnKey],
+					columnKeys: [columnKey] // ['NONE'] // FIXME
 				};
 				columns[c].stateColumnKey = columns[c].columnKeys[0];
 				continue;
@@ -81,24 +91,17 @@ module.exports = class ReactTaskWriter extends TaskWriter {
 		return (
 			<tr>
 				{Object.keys(columns).map((colId) => {
-					const startStep = this.preInsertSteps(); // FIXME this doesn't seem right
-
-					const key = maestroKey.getKey(
-						activityIndex,
-						divisionIndex,
-						columns[colId].stateColumnKey
-					);
+					const seriesState = columns[colId].series;
 
 					return (
 						<SeriesComponent
-							key={key}
-							startStep={startStep}
+							key={seriesState.uuid}
 							colspan={columns[colId].colspan}
 							primaryColumnKey={columns[colId].stateColumnKey}
 							columnKeys={columns[colId].columnKeys}
-							seriesState={columns[colId].series}
-							activityIndex={activityIndex}
-							divisionIndex={divisionIndex}
+							seriesState={seriesState}
+							activityUuid={activityUuid}
+							divisionUuid={divisionUuid}
 							taskWriter={this}
 						/>
 					);
@@ -109,8 +112,8 @@ module.exports = class ReactTaskWriter extends TaskWriter {
 	}
 
 	// used by sub-steps
-	wrapStepLists(steps, startStep = 1) {
-		return (<ol key={uuidv4()} start={startStep}>{steps}</ol>);
+	wrapStepLists(steps) {
+		return (<div key={uuidv4()} style={{ marginLeft: '20px' }}>{steps}</div>);
 	}
 
 	/**
@@ -121,22 +124,26 @@ module.exports = class ReactTaskWriter extends TaskWriter {
 	addImages(images) {
 
 		const imageHtmlArray = [];
-		const imagesPath = this.procedureWriter.program.imagesPath;
+
+		const program = this.procedureWriter.program;
 		for (const imageMeta of images) {
 
-			const imageSrcPath = path.join(imagesPath, imageMeta.path);
+			const imageSrcPath = path.join(this.procedureWriter.program.imagesPath, imageMeta.path);
+
+			// if electron, need to get images with file://path/to/image
+			const htmlImagePath = program.isElectron ?
+				program.getHtmlImagePath(imageMeta.path) : path.join('images', imageMeta.path);
+
 			const imageSize = this.scaleImage(
 				getImageFileDimensions(imageSrcPath),
 				imageMeta
 			);
 
-			const imgPath = path.join('images', imageMeta.path);
-
 			const image = (
-				<a href={imgPath} key={uuidv4()}>
+				<a href={htmlImagePath} key={uuidv4()}>
 					<img
 						className="img-fluid"
-						src={imgPath}
+						src={htmlImagePath}
 						width={imageSize.width}
 						height={imageSize.height}
 						alt="image"
@@ -164,7 +171,7 @@ module.exports = class ReactTaskWriter extends TaskWriter {
 		});
 
 		return (
-			<div key={uuidv4()} className="ncw ncw-{{blockType}}">
+			<div key={uuidv4()} className={`ncw ncw-${blockType}`}>
 				<div className="ncw-head">
 					{blockType.toUpperCase()}
 				</div>
@@ -197,7 +204,7 @@ module.exports = class ReactTaskWriter extends TaskWriter {
 		}
 
 		let actorText = '';
-		if (options.actors.length > 0) {
+		if (options.actors.length > 0 && options.columnKeys.length > 0) {
 			const actorToColumnIntersect = options.actors.filter((value) => {
 				return options.columnKeys.includes(value);
 			});
@@ -224,8 +231,6 @@ module.exports = class ReactTaskWriter extends TaskWriter {
 				let elem = stepText[s];
 				if (typeof elem === 'string') {
 					elem = this.textTransform.transform(elem);
-				} else {
-					console.log(elem);
 				}
 				// else { assume it's a react object }
 
@@ -249,7 +254,7 @@ module.exports = class ReactTaskWriter extends TaskWriter {
 
 	addCheckStepText(stepText, level, parent) {
 		return (
-			<li key={uuidv4()} className={`li-level-${level}`}>
+			<div key={uuidv4()} className={`li-level-${level}`}>
 				<label>
 					<input
 						data-level="step"
@@ -259,7 +264,7 @@ module.exports = class ReactTaskWriter extends TaskWriter {
 					/>
 					{this.textTransform.transform(stepText)}
 				</label>
-			</li>
+			</div>
 		);
 	}
 
@@ -289,6 +294,39 @@ module.exports = class ReactTaskWriter extends TaskWriter {
 
 	setModuleOutputType() {
 		return 'React';
+	}
+
+	insertStepPostProcess(elements, step) {
+
+		const validBody = (Array.isArray(elements.body) && elements.body.length) ||
+			(!Array.isArray(elements.body) && elements.body);
+
+		if (validBody) {
+			let stepNum;
+			try {
+				stepNum = step.parent.constructor.name === 'Series' ?
+					step.getActivityStepNumber() :
+					step.getSubstepNumber();
+			} catch (e) {
+				stepNum = '☠';
+				console.error(e);
+				console.error(step);
+			}
+			// stepNum = 'X';
+			elements.body = [ // <-- needs to be wrapped in array for handling in insertStep()
+				<div
+					style={{ display: 'flex', flexFlow: 'row nowrap' }}
+					key={step.uuid + '-test-fakey-fakey'}
+				>
+					<div style={{ margin: '0 10px 0 0' }}>
+						<p>{`${stepNum}.`}</p>
+					</div>
+					<div style={{ flex: 1 }}>
+						{elements.body}
+					</div>
+				</div>
+			];
+		}
 	}
 
 };

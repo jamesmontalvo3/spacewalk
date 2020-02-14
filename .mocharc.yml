@@ -3,6 +3,7 @@ ignore:
   - node_modules
   - build
   - coverage
+  - webpack
 
 spec:
   - app/**/*.spec.js

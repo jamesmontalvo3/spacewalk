@@ -4,10 +4,22 @@ const docx = require('docx');
 const arrayHelper = require('../../helpers/arrayHelper');
 let reactTextTransform; // only load this when needed, because JSX.
 
+/**
+ * Generate bold/colored text in a <span> for HTML
+ * @param {string} text   Content of the text
+ * @param {string} color  Color of the text
+ * @return {string}
+ */
 function htmlColor(text, color) {
 	return `<span style="font-weight:bold;color:${color};">${text}</span>`;
 }
 
+/**
+ * Generate bold/colored text for DOCX
+ * @param {string} text   Content of the text
+ * @param {string} color  Color of the text
+ * @return {docx.TextRun}
+ */
 function docxColor(text, color) {
 	return new docx.TextRun({
 		text: text,
@@ -159,6 +171,21 @@ for (const item of colors) {
 	}
 }
 
+/**
+ * Splits text at a transformable substring and returns the text before and after the substring
+ * unchanged. The transformable text is transformed.
+ *
+ * @param {string} text
+ * @param {Object} xform        Element of 'transforms' array. Example:
+ *                                {
+ *                                  text: '{{CHECK}}',
+ *                                  html: '✓',
+ *                                  docx: '✓',
+ *                                  react: null // see ReactTextTransform
+ *                                }
+ * @param {string} xformFormat  Format like docx, html, react
+ * @return {Object}             Example: { prefix: ..., transformed: ..., suffix: ... }
+ */
 function splitStringAndTransform(text, xform, xformFormat) {
 
 	// In `text`, get the start and end index of xform.text
@@ -181,6 +208,14 @@ function splitStringAndTransform(text, xform, xformFormat) {
 	return result;
 }
 
+/**
+ * Find next transform, perform it or return false
+ *
+ * @param {string} text String to find transforms in
+ * @param {string} xformFormat Transform format like html, docx, react
+ * @return {Object|boolean}  False if no transformable substrings found in text. Otherwise return
+ *                           output of splitStringAndTransform(). See those docs.
+ */
 function findNextTransform(text, xformFormat) {
 	for (const xform of transforms) {
 		if (text.indexOf(xform.text) !== -1) {
@@ -190,6 +225,14 @@ function findNextTransform(text, xformFormat) {
 	return false;
 }
 
+/**
+ * Perform all transforms on text. This function is called recursively until no more transforms are
+ * found.
+ *
+ * @param {string} text Text on which to perform all transforms
+ * @param {string} xformFormat Transform format like html, docx, react
+ * @return {Array}
+ */
 function doTransform(text, xformFormat) {
 	if (!text) {
 		return [];
@@ -205,6 +248,16 @@ function doTransform(text, xformFormat) {
 	}
 }
 
+/**
+ * Convert all strings to docx.TextRun objects.
+ *
+ * When the TextTransform class is complete transforming a string for the docx transform type, the
+ * array outputted must not include any strings.
+ *
+ * @param {Array} transformArr  Array which may include docx.TextRun objects and strings (and
+ *                              perhaps other docx types).
+ * @return {Array}              Array which shall not include strings
+ */
 function docxStringsToTextRuns(transformArr) {
 	return transformArr.map((cur) => {
 		return typeof cur === 'string' ? new docx.TextRun(cur) : cur;

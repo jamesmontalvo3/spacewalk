@@ -23,26 +23,38 @@ module.exports = class TaskRequirements {
 
 		// this has to be done here to avoid circular references
 		const Task = require('./Task');
+		typeHelper.errorIfIsnt(task, Task);
+		this.task = task;
 
+		this.updateDefinition(definition);
+	}
+
+	updateDefinition(definition) {
 		typeHelper.errorIfIsnt(definition.file, 'string');
 		typeHelper.errorIfIsnt(definition.roles, 'object-not-array');
-		typeHelper.errorIfIsnt(task, Task);
 
-		this.task = task;
 		this.setFile(definition.file);
 
 		this.roles = this.cloneRoles(definition.roles);
+
+		// if definition has color set, update to that color. If not, and this.color was set, unset
 		if (definition.color) {
 			this.color = definition.color;
+		} else if (this.color) {
+			delete this.color;
 		}
 	}
 
 	setFile(file) {
+		const changed = this.file !== file;
+
 		this.file = file;
 
 		// FIXME: Pick one. Both are used currently. Maybe only set it on this object, not on Task
 		this.task.file = file;
 		this.task.filename = file;
+
+		return changed;
 	}
 
 	cloneRoles(source) {
@@ -57,7 +69,7 @@ module.exports = class TaskRequirements {
 		return {
 			file: this.file,
 			roles: this.cloneRoles(this.roles),
-			color: this.color
+			color: this.color || '#FFFFFF'
 		};
 	}
 

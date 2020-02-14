@@ -14,6 +14,12 @@ const EvaHtmlProcedureWriter = require('../writer/procedure/EvaHtmlProcedureWrit
 
 const Server = require('../web/Server');
 
+/**
+ * Get the path to a Maestro project from input, or use current working directory
+ * @param {string|boolean} projectPath  String representation of path to a Maestro project, or
+ *                                      false if no project path.
+ * @return {string}
+ */
 function handleProjectPath(projectPath) {
 	if (projectPath) {
 		return path.resolve(projectPath);
@@ -21,14 +27,22 @@ function handleProjectPath(projectPath) {
 	return process.cwd();
 }
 
+/**
+ * Check if a path exists, and optionally create it
+ * @param {string} path              Path to check for existence
+ * @param {boolean} createIfMissing  Create path if true, don't if false
+ * @return {boolean}
+ */
 function pathMustExist(path, createIfMissing = false) {
+
 	try {
 		fs.statSync(path);
 	} catch (e) {
 		if (createIfMissing) {
-			fs.mkdirSync(path); // catch here, too?
+			fs.mkdirSync(path);
+			// FIXME: catch here, then return or not based upon whether mkdirSync is successful
 		} else {
-			console.error(`Path ${path} does not exist`);
+			console.error(`Path ${path} does not exist.`);
 			process.exit();
 		}
 	}
@@ -167,13 +181,9 @@ module.exports = class CommanderProgram extends Program {
 	 */
 	validateProgramArguments() {
 
-		this.procedurePath = path.join(this.projectPath, 'procedures');
-		this.tasksPath = path.join(this.projectPath, 'tasks');
-		this.imagesPath = path.join(this.projectPath, 'images');
-		this.outputPath = path.join(this.projectPath, 'build');
-		this.gitPath = path.join(this.projectPath, '.git');
+		this.setPathsFromProject(this.projectPath);
 
-		pathMustExist(this.procedurePath);
+		pathMustExist(this.proceduresPath);
 		pathMustExist(this.tasksPath);
 
 		// at this point tasks and procedures paths exist. Reasonably certain this
@@ -189,7 +199,7 @@ module.exports = class CommanderProgram extends Program {
 	}
 
 	doCompose() {
-		fs.readdir(this.procedurePath, (err, files) => {
+		fs.readdir(this.proceduresPath, (err, files) => {
 			if (err) {
 				console.log(`Unable to scan procedures directory: ${err}`);
 				process.exit();
@@ -202,11 +212,13 @@ module.exports = class CommanderProgram extends Program {
 
 	generateProcedureFormats(file) {
 
-		const procedureFile = path.join(this.procedurePath, file);
+		console.log(`Generating procedure from ${file}`);
+
+		const procedureFilepath = path.join(this.proceduresPath, file);
 
 		// Parse the input file
 		const procedure = new Procedure();
-		const err = procedure.addProcedureDefinitionFromFile(procedureFile);
+		const err = procedure.addProcedureDefinitionFromFile(procedureFilepath);
 		if (err) {
 			procedure.handleParsingError(err, file);
 		}

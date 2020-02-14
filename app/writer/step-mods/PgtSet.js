@@ -38,6 +38,12 @@ const validSettings = {
 	]
 };
 
+/**
+ * Get array of collar settings (what the collar is turned to), like [B7, CCW2] or [B7, CCW2, 30.5]
+ *
+ * @param {PgtSet} instance  PgtSet instance
+ * @return {Array}
+ */
 function getCollars(instance) {
 	const collars = [instance.torqueCollar, instance.speedCollar];
 	if (instance.mtlCollar) {
@@ -46,6 +52,14 @@ function getCollars(instance) {
 	return collars;
 }
 
+/**
+ * Get array of collar values, like ["25.5 ft-lbs", "30 RPM", "MTL 30.5"] or
+ * ["25.5", "30", "MTL 30.5"]
+ *
+ * @param {PgtSet} instance  PgtSet instance
+ * @param {*} includeUnits   Whether to add units to return values
+ * @return {Array}
+ */
 function getCollarValues(instance, includeUnits = false) {
 	const values = [
 		validSettings.torque[instance.torqueCollar],
@@ -59,10 +73,18 @@ function getCollarValues(instance, includeUnits = false) {
 	return values;
 }
 
+/**
+ * @param {PgtSet} instance  PgtSet instance
+ * @return {string}
+ */
 function getSetString(instance) {
 	return `PGT [${getCollars(instance).join(', ')}]`;
 }
 
+/**
+ * @param {PgtSet} instance  PgtSet instance
+ * @return {string}
+ */
 function getValueString(instance) {
 	let valuesText = `(${getCollarValues(instance, true).join(', ')})`;
 	if (instance.socket) {
@@ -71,8 +93,16 @@ function getValueString(instance) {
 	return valuesText;
 }
 
+/**
+ * Return `setting` unchanged if it is a valid setting. @throw if not.
+ *
+ * @param {string} setting  Setting text for given type, e.g. '2.5' to '25.5' for type === 'torque'
+ * @param {string} type     torque, speed, mtl
+ * @return {string}
+ */
 function validateSetting(setting, type) {
 
+	// FIXME what's the point of this check? Why just for mtl? This can probably be removed.
 	if (type === 'mtl' && !setting) {
 		return null;
 	}
@@ -90,6 +120,17 @@ function validateSetting(setting, type) {
 	return setting;
 }
 
+/**
+ * Get MTL and socket info, which can be ambiguous based upon user input since they are both
+ * optional and thus potentially occupy the third and fourth portions of a pgt.set call (torque and
+ * speed are first and second).
+ *
+ * @param {string|null|undefined} mtlOrSocket   Third part of a pgt.set call, which if not null will
+ *                                              be either MTL (if MTL included) or socket info (if
+ *                                              socket included but MTL not included)
+ * @param {string|null|undefined} socketOrNull  The fourth part of a pgt.set call, if anything.
+ * @return {Object}                             Example: { mtl: '30.5', socket: '6-in Wobble' }
+ */
 function getMtlAndSocket(mtlOrSocket, socketOrNull = null) {
 	let mtl,
 		socket;
@@ -118,7 +159,6 @@ module.exports = class PgtSet extends StepModule {
 		super();
 		this.key = 'pgt.set';
 		this.step = step;
-		this.raw = stepYaml;
 
 		// todo also accept torque/speed/etc separately (e.g. accept an obj instead of string)
 		const inputString = stepYaml[this.key];

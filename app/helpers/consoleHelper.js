@@ -5,6 +5,15 @@
 // it being used.
 const colors = require('colors'); // eslint-disable-line no-unused-vars
 
+/**
+ * Create text for console with colors and formatting applied
+ *
+ * @param {Array|string} messages  Array of messages, or a string which will be converted to array
+ * @param {string} title           Text to act as a title over the messages
+ * @param {string} color           Font color
+ * @param {boolean} addSpacing     If true, add newline before and after output
+ * @return {string}
+ */
 function formatText(messages, title, color, addSpacing) {
 
 	let output = '',

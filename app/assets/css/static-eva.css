@@ -1,0 +1,225 @@
+@media print{@page {size: landscape}}
+
+* {
+	box-sizing: border-box;
+}
+
+body {
+	font-family: Arial,sans-serif;
+	margin: auto;
+	max-width: 90%;
+}
+
+td {
+	vertical-align: top;
+}
+
+.gridtable {
+	/* font-family: verdana, arial, sans-serif; */
+	/* font-size: 16px; */
+	border-collapse: collapse;
+	border-color: #666666;
+	border-width: 2px;
+	color: #333333;
+	margin-bottom: 10px;
+	page-break-after: always;
+}
+
+.gridtable th {
+	background-color: #ffffff;
+	border-color: #666666;
+	border-style: solid;
+	border-width: 2px;
+	padding: 8px;
+	text-align: center;
+}
+
+.gridtable td {
+	background-color: #ffffff;
+	border-bottom: 1px solid #AAAAAA;
+	border-left: 2px solid #666666;
+	border-right: 2px solid #666666;
+	padding: 8px;
+}
+
+tbody > tr:last-of-type {
+	border-bottom: 2px solid #666666;
+}
+
+ul {
+	list-style: none;
+	margin: 0;
+	padding: 5px 5px 5px 20px;
+}
+
+ol {
+	margin: 0;
+	margin-left: 10px;
+	padding: 5px;
+	padding-left: 10px;
+}
+
+li {
+	line-height: 150%;
+	margin: 3px 0;
+	padding: 0;
+}
+
+li p {
+	margin: 2px 0;
+	padding: 0;
+}
+
+.ncw {
+	border: solid black 1px;
+	margin: 5px 0;
+	padding: 0;
+}
+
+.ncw div {
+	border: solid black 1px;
+	margin: 0;
+}
+
+.ncw-head {
+	font-weight: bold;
+	padding: 10px;
+	text-align: center;
+	text-transform: uppercase;
+}
+
+.ncw-warning .ncw-head {
+	background-color: red;
+	color: white;
+}
+
+.ncw-caution .ncw-head {
+	background-color: yellow;
+	color: black;
+}
+
+.ncw-body {
+	padding: 5px;
+}
+
+.sizeable{
+	border: 1px solid;
+	display: inline-block;
+	max-height: 100%;
+	max-width: 100%;
+	overflow: hidden;
+	resize: both;
+}
+
+img {
+	height: auto;
+}
+
+.tooltip {
+	border-bottom: 1px dotted black;
+	display: inline-block;
+	position: relative;
+}
+
+.tooltip .tooltiptext {
+	background-color: black;
+	border-radius: 6px;
+	color: #fff;
+	padding: 5px 0;
+	position: absolute; /* Position the tooltip */
+	text-align: center;
+	visibility: hidden;
+	width: 120px;
+	z-index: 1; /* Position the tooltip */
+	/*top: -5px; left: 105%; */
+}
+
+.tooltip:hover .tooltiptext {
+	visibility: visible;
+}
+
+.footer {
+	text-align: center;
+}
+
+.timeline {
+	display: flex;
+	margin: 0 auto;
+	max-width: 960px;
+}
+
+.column-pet {
+	width: 70px;
+}
+
+.column-ev {
+	width: 425px;
+}
+
+.tick {
+	border-top: 1px solid #000;
+	display: inline-block;
+	height: 12px;
+	width: 12px;
+}
+
+.half-hour-increment {
+	display: inline-block;
+	position: relative;
+	top: -7px;
+}
+
+.activity-blocks {
+	border-bottom: 1px solid #000;
+	border-right: 1px solid #000;
+}
+
+/* only draw the left border in the first EV column */
+.activity-blocks-0 {
+	border-left: 1px solid #000;
+}
+
+.task-block {
+	border: 1px solid #000;
+	margin-bottom: -1px;
+	margin-left: -1px;
+	margin-right: -1px;
+}
+
+.task-block > * {
+	color: #333333;
+	text-decoration: none;
+}
+
+.column-header {
+	font-size: 16px;
+	font-weight: bold;
+	height: 18px;
+	text-align: center;
+}
+
+.timeline-markings {
+	font-family: Arial;
+	font-size: 12px;
+	width: 70px;
+}
+
+.task-title {
+	padding-left: 6px;
+}
+
+.align-right {
+	text-align: right;
+}
+
+.step-component:hover {
+	background-color: #eee;
+}
+
+.step-component .edit-button{
+	display: none;
+}
+
+.step-component:hover .edit-button{
+	display: block;
+}

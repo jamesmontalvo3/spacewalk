@@ -11,6 +11,13 @@ const validSettings = {
 	yaw: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
 };
 
+/**
+ * Return `setting` unchanged if it is a valid setting. @throw if not.
+ *
+ * @param {string} setting  Setting text for given type, e.g. '1' through '12' for type === 'clock'
+ * @param {string} type     clock, pitch, roll, or yaw
+ * @return {string}
+ */
 function validateSetting(setting, type) {
 	if (validSettings[type].indexOf(setting) === -1) {
 		throw new Error(`Setting ${setting} is not valid for APFR ${type} joint`);
@@ -20,6 +27,12 @@ function validateSetting(setting, type) {
 
 const specialWIFs = ['SSRMS', 'WIFEX'];
 
+/**
+ * Return `wif` unchanged if it matches regular expression or is in array `specialWIFs`
+ *
+ * @param {string} wif
+ * @return {string}
+ */
 function validateWIF(wif) {
 	const standard = /\w+ WIF \d+/;
 	if (specialWIFs.indexOf(wif) !== -1 || standard.test(wif)) {
@@ -29,6 +42,12 @@ function validateWIF(wif) {
 	}
 }
 
+/**
+ * Get array of settings
+ *
+ * @param {ApfrInstall} instance  Instance of ApfrInstall object
+ * @return {Array}                Array in form [clock, pitch, roll, yaw]
+ */
 function getSettings(instance) {
 	return [instance.clock, instance.pitch, instance.roll, instance.yaw];
 }
@@ -39,7 +58,6 @@ module.exports = class ApfrInstall extends StepModule {
 		super();
 		this.key = 'apfr.install';
 		this.step = step;
-		this.raw = stepYaml;
 
 		// todo also accept torque/speed/etc separately (e.g. accept an obj instead of string)
 		const settingsString = stepYaml[this.key].settings;
@@ -95,7 +113,7 @@ module.exports = class ApfrInstall extends StepModule {
 			text: `Install APFR in ${this.wif} `
 		});
 
-		if (this.step.text.length) {
+		if (this.step.props.text.length) {
 			// if there is step text, put first APFR text on a new line
 			installAPFR.break();
 		}

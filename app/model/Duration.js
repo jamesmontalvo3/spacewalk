@@ -2,6 +2,12 @@
 
 const consoleHelper = require('../helpers/consoleHelper');
 
+/**
+ * Throws an error if not a duration object
+ *
+ * @param {Duration} duration  Duration object, or throw error if not
+ * @return {boolean}           Return true, or throw error
+ */
 function throwIfNotDuration(duration) {
 	if (!(duration instanceof module.exports)) {
 		console.error(duration);
@@ -9,6 +15,7 @@ function throwIfNotDuration(duration) {
 	}
 	return true;
 }
+
 module.exports = class Duration {
 
 	/**
@@ -26,6 +33,10 @@ module.exports = class Duration {
 
 		const errors = [];
 		for (const t of ['hours', 'minutes', 'seconds']) {
+			if (typeof duration[t] === 'string') {
+				duration[t] = parseInt(duration[t]);
+			}
+
 			if (duration[t] && !Number.isInteger(duration[t])) {
 				errors.push(`duration ${t} must be an integer`);
 			}

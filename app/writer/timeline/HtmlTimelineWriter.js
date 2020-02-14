@@ -4,6 +4,15 @@ const TimelineWriter = require('./TimelineWriter');
 
 const nunjucks = require('../../model/nunjucksEnvironment');
 
+/**
+ * Get HTML output for activity in timeline
+ *
+ * @param {HtmlTimelineWriter} writer  Reference to HtmlTimelineWriter object
+ * @param {number} columnIndex         Which column in timeline to create activity in
+ * @param {Task} task
+ * @param {string} actor
+ * @return {string}                    Nunjucks-rendered HTML output
+ */
 function getActivity(writer, columnIndex, task, actor) {
 
 	const opts = {
@@ -43,6 +52,14 @@ function getActivity(writer, columnIndex, task, actor) {
 
 }
 
+/**
+ * Get markings for side of timeline based upon how long the timeline is
+ *
+ * @param {HtmlTimelineWriter} writer  Reference to HtmlTimelineWriter object
+ * @return {Array}                     Array in following form, from zero hours to length of
+ *                                     timeline rounded up to the next half-hour:
+ *                                       [ ..., { blockHeight: 25, timeString: '02:30' }, ...]
+ */
 function getTimelineMarkings(writer) {
 
 	// how many half-hour segments to generate

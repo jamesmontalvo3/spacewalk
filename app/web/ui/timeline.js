@@ -23,22 +23,45 @@ let petEpoch;
 let petPauseTime;
 const petLog = [];
 
+/**
+ * Outputs either H:M or H:M:S, for use in Duration.format()
+ *
+ * @param {boolean} showSeconds Whether or not to output seconds
+ * @return {string}
+ */
 function getFormat(showSeconds = true) {
 	const colon = showColon ? ':' : ' ';
 	const seconds = showSeconds ? `${colon}S` : '';
 	return `H${colon}M${seconds}`;
 }
 
+/**
+ * Convert milliseconds to seconds
+ *
+ * @param {number} milliseconds
+ * @return {number}
+ */
 function toSeconds(milliseconds) {
 	return Math.round(milliseconds / 1000);
 }
 
+/**
+ * Push msg and milliseconds to `petLog` array and print human readable time and message to console.
+ *
+ * @param {string} msg
+ * @param {number} milliseconds
+ */
 function logTime(msg, milliseconds) {
 	petLog.push({ milliseconds, msg });
 	const date = new Date(milliseconds);
 	console.log(`At ${date}: ${msg}`);
 }
 
+/**
+ * Start PET timer at current timestamp
+ *
+ * @param {boolean} startTime  FIXME: this currently should not be used
+ */
 function startPET(startTime = false) {
 	if (startTime) {
 		throw new Error('Setting PET to arbitrary start time not yet implemented');
@@ -47,11 +70,17 @@ function startPET(startTime = false) {
 	logTime('PET started (epoch set)', petEpoch);
 }
 
+/**
+ * Pause PET timer, and log the pause event
+ */
 function pausePET() {
 	petPauseTime = Date.now();
 	logTime('PET paused', petPauseTime);
 }
 
+/**
+ * Unpause PET timer, and log the un-pause event
+ */
 function unpausePET() {
 	const pausedForMilliseconds = Date.now() - petPauseTime;
 
@@ -61,6 +90,11 @@ function unpausePET() {
 	logTime(`PET unpaused (was paused for ${dur.format('H:M:S')}`, Date.now());
 }
 
+/**
+ * Get the current PET
+ * @param {boolean} showSeconds  Whether or not to display seconds
+ * @return {string}              Current PET in HH:MM or HH:MM:SS format
+ */
 function getPET(showSeconds = true) {
 	if (!petEpoch) {
 		throw new Error('Cannot get PET because PET timer has not started');
@@ -124,6 +158,9 @@ function setProgress() {
 	progressSpan.textContent = status;
 }
 
+/**
+ * @param {Object} event  Event object
+ */
 function recordStepClick(event) {
 	const timestamp = Date.now();
 	console.log(timestamp, event.target.labels[0].textContent);

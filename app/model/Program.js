@@ -1,6 +1,7 @@
 'use strict';
 
 const fs = require('fs');
+const path = require('path');
 const childProcess = require('child_process');
 
 const packageJson = require('../../package.json');
@@ -8,6 +9,13 @@ const envHelper = require('../helpers/envHelper');
 
 const noGitMessage = 'Git not available in browser';
 
+/**
+ * Run a git command in the projectPath and return its output
+ *
+ * @param {string} projectPath
+ * @param {string} cmd
+ * @return {string}
+ */
 function runGitCmd(projectPath, cmd) {
 	let output;
 
@@ -23,6 +31,13 @@ function runGitCmd(projectPath, cmd) {
 	return output;
 }
 
+/**
+ * Perform 'git rev-parse' or 'git log' commands
+ * @param {Program} program  Program object, e.g. CommanderProgram, WebProgram, ElectronProgram
+ * @param {string} type      Either 'hash' or 'date', to run 'git rev-parse' or 'git log'
+ * @return {string}          Return output of git functions, or message stating Git isn't available
+ *                           in browser.
+ */
 function getDateOrHash(program, type) {
 
 	const types = {
@@ -39,6 +54,12 @@ function getDateOrHash(program, type) {
 	};
 	const prop = types[type].prop;
 
+	// This was done because the status of a git repo shouldn't change from the time the CLI command
+	// `maestro compose` was run until the time the output files were generated. It made sense to
+	// cache the values rather than risk running git commands again. That assumption does not matter
+	// (as of this writing) in the browser context, since there is no way to get git data (yet). In
+	// the Electron context the git status can change, however, and this will need to be updated.
+	// FIXME ^
 	if (program[prop]) {
 		return program[prop];
 	}
@@ -131,8 +152,89 @@ module.exports = class Program {
 	}
 
 	getProjectProcedureFiles() {
-		return fs.readdirSync(this.procedurePath).filter((filename) => {
+		return fs.readdirSync(this.proceduresPath).filter((filename) => {
 			return filename.endsWith('.yml');
+		});
+	}
+
+	setPathsFromProject(projectPath = false) {
+
+		// property on this object --> directory name
+		const paths = {
+			proceduresPath: 'procedures',
+			tasksPath: 'tasks',
+			imagesPath: 'images',
+			outputPath: 'build',
+			gitPath: '.git'
+		};
+
+		if (projectPath) {
+			this.projectPath = projectPath;
+			for (const prop in paths) {
+				const dir = paths[prop];
+				this[prop] = path.join(projectPath, dir);
+			}
+		} else {
+			for (const prop in paths) {
+				const dir = paths[prop];
+				this[prop] = dir;
+			}
+		}
+
+	}
+
+	moveFile(originalPath, newPath, successHandler = null, errorHandler = null) {
+
+		const genericResponseHandler = function(result) {
+			console.log(result.msg);
+			return;
+		};
+
+		if (!successHandler) {
+			successHandler = genericResponseHandler;
+		}
+
+		if (!errorHandler) {
+			errorHandler = genericResponseHandler;
+		}
+
+		const formatResponse = function(success, msg, error = undefined) {
+			return {
+				success: success,
+				msg: msg,
+				originalPath,
+				newPath,
+				error
+			};
+		};
+
+		// FIXME fs.exists deprecated
+		fs.exists(originalPath, function(currentExists) {
+			if (!currentExists) {
+				return errorHandler(
+					formatResponse(false, 'ERROR: original file path doesn\'t exist')
+				);
+			}
+
+			fs.exists(newPath, function(newExists) {
+				if (newExists) {
+					return errorHandler(
+						formatResponse(false, 'ERROR: file already exists at new file path')
+					);
+				}
+
+				fs.rename(originalPath, newPath, function(err) {
+					if (err) {
+						return errorHandler(
+							formatResponse(false, err.message, err)
+						);
+					}
+
+					return successHandler(
+						formatResponse(true, `${originalPath} moved to ${newPath}`)
+					);
+				});
+			});
 		});
 	}
 

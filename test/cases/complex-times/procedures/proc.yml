@@ -5,10 +5,7 @@ columns:
 
   - key: IV
     display: IV/SSRMS
-    actors:
-      - "*"
-      - EV3
-      - EV4
+    actors: "*"
 
   - key: EV1
     actors: EV1
@@ -17,6 +14,16 @@ columns:
   - key: EV2
     actors: EV2
     display: EV2
+
+  - key: EV3
+    actors: EV3
+    display: EV3
+
+  - key: EV4
+    actors: EV4
+    display: EV4
+
+
 
 tasks:
 

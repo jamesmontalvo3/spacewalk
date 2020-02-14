@@ -35,13 +35,13 @@ describe('Procedure', function() {
 		expect(procedure.tasks[0].concurrentSteps).to.have.all.keys(0);
 
 		// eslint-disable-next-line no-unused-expressions
-		expect(procedure.tasks[0].concurrentSteps[0].subscenes.EV1).to.exist;
-		expect(procedure.tasks[0].concurrentSteps[0].subscenes.EV1).to.be.an('array');
-		expect(procedure.tasks[0].concurrentSteps[0].subscenes.EV1).to.have.all.keys(0);
+		expect(procedure.tasks[0].concurrentSteps[0].subscenes.EV1.steps).to.exist;
+		expect(procedure.tasks[0].concurrentSteps[0].subscenes.EV1.steps).to.be.an('array');
+		expect(procedure.tasks[0].concurrentSteps[0].subscenes.EV1.steps).to.have.all.keys(0);
 
-		assert.isArray(procedure.tasks[0].concurrentSteps[0].subscenes.EV1[0].text);
+		assert.isArray(procedure.tasks[0].concurrentSteps[0].subscenes.EV1.steps[0].props.text);
 		assert.strictEqual(
-			procedure.tasks[0].concurrentSteps[0].subscenes.EV1[0].text[0],
+			procedure.tasks[0].concurrentSteps[0].subscenes.EV1.steps[0].props.text[0],
 			'Go Outside'
 		);
 	};

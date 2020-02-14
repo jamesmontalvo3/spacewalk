@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+	<link href="../assets/css/base-eva.css" rel="stylesheet">
+
+	<title>Maestro</title>
+	<script type="application/javascript">
+		console.log('this is electron');
+		window.isElectron = true;
+	</script>
+</head>
+<body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+
+	<!-- bundled React stuff -->
+	<script type="application/javascript" src="../../build/electron-bundle.js"></script>
+
+	<!-- not bundled non-React stuff -->
+	<script type="application/javascript" src="./renderer.js"></script>
+</body>
+</html>

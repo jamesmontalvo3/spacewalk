@@ -1,5 +1,6 @@
 /* Specify environment to include mocha globals */
 /* eslint-env node, mocha */
+/* eslint-disable require-jsdoc */
 
 'use strict';
 

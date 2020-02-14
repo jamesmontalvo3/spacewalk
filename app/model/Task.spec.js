@@ -10,6 +10,7 @@ const YAML = require('js-yaml');
 
 const Task = require('./Task');
 
+const testProcedureGenerator = require('../../test/generators/testProcedureGenerator');
 const taskRequirementsDefinition = {
 	file: 'some-task.yml',
 	roles: { crewA: 'EV1', crewB: 'EV2' },
@@ -20,7 +21,9 @@ const taskRequirementsDefinition = {
  * Positive testing for task
  */
 describe('Task constructor - Positive Testing', function() {
+
 	describe('Normal Input', () => {
+		const procedure = testProcedureGenerator('simple/procedures/proc.yml');
 		const yamlString = `
         title: Egress
 
@@ -40,7 +43,7 @@ describe('Task constructor - Positive Testing', function() {
 
 		it('should return a task for normal input', () => {
 
-			const task = new Task(taskRequirementsDefinition);
+			const task = new Task(taskRequirementsDefinition, procedure);
 			task.addTaskDefinition(taskDefinition);
 
 			expect(task.title).to.be.a('string');
@@ -50,12 +53,12 @@ describe('Task constructor - Positive Testing', function() {
 			expect(task.concurrentSteps).to.have.all.keys(0);
 
 			// eslint-disable-next-line no-unused-expressions
-			expect(task.concurrentSteps[0].subscenes.EV1).to.exist;
-			expect(task.concurrentSteps[0].subscenes.EV1).to.be.an('array');
-			expect(task.concurrentSteps[0].subscenes.EV1).to.have.all.keys(0);
+			expect(task.concurrentSteps[0].subscenes.EV1.steps).to.exist;
+			expect(task.concurrentSteps[0].subscenes.EV1.steps).to.be.an('array');
+			expect(task.concurrentSteps[0].subscenes.EV1.steps).to.have.all.keys(0);
 
-			assert.isArray(task.concurrentSteps[0].subscenes.EV1[0].text);
-			assert.strictEqual(task.concurrentSteps[0].subscenes.EV1[0].text[0], 'Go Outside');
+			assert.isArray(task.concurrentSteps[0].subscenes.EV1.steps[0].props.text);
+			assert.strictEqual(task.concurrentSteps[0].subscenes.EV1.steps[0].props.text[0], 'Go Outside');
 
 		});
 	});
@@ -65,7 +68,9 @@ describe('Task constructor - Positive Testing', function() {
  * Negative testing for Task
  */
 describe('Task constructor - Negative Testing', function() {
+
 	describe('No Title', () => {
+		const procedure = testProcedureGenerator('simple/procedures/proc.yml');
 
 		const yamlString = `
         duration: 00:25
@@ -78,7 +83,7 @@ describe('Task constructor - Negative Testing', function() {
 		it('should throw error if title doesn\'t exist', () => {
 
 			expect(() => {
-				const task = new Task(taskRequirementsDefinition);
+				const task = new Task(taskRequirementsDefinition, procedure);
 				task.addTaskDefinition(fakeYamlObj);
 			}).to.throw('Value undefined must be one of these types:\n  - string');
 
@@ -86,6 +91,7 @@ describe('Task constructor - Negative Testing', function() {
 	});
 
 	describe('No Steps', () => {
+		const procedure = testProcedureGenerator('simple/procedures/proc.yml');
 
 		const yamlString = `
         title: Egress
@@ -96,7 +102,7 @@ describe('Task constructor - Negative Testing', function() {
 		it('should throw error if steps don\'t exist', () => {
 
 			expect(() => {
-				const task = new Task(taskRequirementsDefinition);
+				const task = new Task(taskRequirementsDefinition, procedure);
 				task.addTaskDefinition(taskDefinition);
 			}).to.throw('Value undefined must be one of these types:\n  - array');
 

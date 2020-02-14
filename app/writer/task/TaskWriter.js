@@ -182,37 +182,37 @@ module.exports = class TaskWriter extends Abstract {
 			checkboxes: []
 		};
 
-		if (step.images) {
-			elements.images.push(...this.addImages(step.images));
+		if (step.props.images) {
+			elements.images.push(...this.addImages(step.props.images));
 		}
 
-		if (step.title) {
-			elements.title.push(step.title);
+		if (step.props.title) {
+			elements.title.push(step.props.title);
 		}
 
-		if (step.warnings.length) {
-			elements.prebody.push(this.addBlock('warning', step.warnings));
+		if (step.props.warnings.length) {
+			elements.prebody.push(this.addBlock('warning', step.props.warnings));
 		}
-		if (step.cautions.length) {
-			elements.prebody.push(this.addBlock('caution', step.cautions));
+		if (step.props.cautions.length) {
+			elements.prebody.push(this.addBlock('caution', step.props.cautions));
 		}
-		if (step.notes.length) {
-			elements.prebody.push(this.addBlock('note', step.notes));
+		if (step.props.notes.length) {
+			elements.prebody.push(this.addBlock('note', step.props.notes));
 		}
-		if (step.comments.length) {
-			elements.prebody.push(this.addBlock('comment', step.comments));
+		if (step.props.comments.length) {
+			elements.prebody.push(this.addBlock('comment', step.props.comments));
 		}
 
-		if (step.text.length) {
+		if (step.props.text.length) {
 			// todo: could make text optionally an array to do newlines
-			elements.body.push(...step.text);
+			elements.body.push(...step.props.text);
 		}
 
-		if (step.checkboxes.length) {
-			elements.checkboxes.push(...step.checkboxes);
+		if (step.props.checkboxes.length) {
+			elements.checkboxes.push(...step.props.checkboxes);
 		}
 
-		for (const module of step.modules) {
+		for (const module of step.props.modules) {
 
 			// allow the module to alter this step, changing title, warnings, text, etc
 			const changes = module.alterStep(this.setModuleOutputType());
@@ -241,15 +241,15 @@ module.exports = class TaskWriter extends Abstract {
 		if (elements.body.length) {
 			elements.body = this.addStepText(elements.body, {
 				level: level,
-				actors: step.actors,
-				columnKeys: step.columnKeys
+				actors: step.context.actors,
+				columnKeys: step.props.columnKeys
 			});
 		}
 
 		for (let t = 0; t < elements.title.length; t++) {
 			// why you'd want multiple titles I do not know...but just in case, apply addTitleText()
 			// to each of them.
-			elements.title[t] = this.addTitleText(elements.title[t], step.duration);
+			elements.title[t] = this.addTitleText(elements.title[t], step.props.duration);
 		}
 
 		if (elements.checkboxes.length) {
@@ -273,36 +273,46 @@ module.exports = class TaskWriter extends Abstract {
 			}
 		}
 
-		const children = [
-			...elements.images,
-			...elements.title,
-			...elements.prebody,
-			elements.body,
-			...elements.postbody,
-			...elements.checkboxes
-		];
-
-		if (step.substeps.length) {
+		if (step.props.substeps.length) {
 			const grandChildren = [];
 
 			// FIXME why does substeps not push preInsertSteps to children?
 			this.preInsertSteps(level + 1);
-			for (const substep of step.substeps) {
+			for (const substep of step.props.substeps) {
 				grandChildren.push(...this.insertStep(substep, level + 1));
 			}
 			this.postInsertSteps(level + 1);
 
 			if (this.wrapStepLists) {
-				children.push(this.wrapStepLists(grandChildren));
+				elements.grandChildren = [this.wrapStepLists(grandChildren)];
 			} else {
-				children.push(...grandChildren);
+				elements.grandChildren = grandChildren;
 			}
+		} else {
+			elements.grandChildren = [];
 		}
+
+		// allow TaskWriters to alter elements at this point.
+		this.insertStepPostProcess(elements, step);
+
+		const children = [
+			...elements.images,
+			...elements.prebody,
+			...elements.title,
+			elements.body,
+			...elements.postbody,
+			...elements.checkboxes,
+			...elements.grandChildren
+		];
 
 		if (!level || level === 0) {
 			this.stepNumber++;
 		}
 
 		return children;
+	}
+
+	insertStepPostProcess(/* elements, step */) {
+		return true;
 	}
 };

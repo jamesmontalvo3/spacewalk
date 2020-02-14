@@ -14,7 +14,7 @@ module.exports = class EvaDocxTaskWriter extends DocxTaskWriter {
 	constructor(task, procedureWriter) {
 		super(task, procedureWriter);
 
-		this.taskColumns = task.getColumns(task); // FIXME no need to pass task into getColumns
+		this.taskColumns = task.getColumns();
 
 		this.numCols = this.taskColumns.length;
 		this.numContentRows = task.concurrentSteps.length;
@@ -109,7 +109,7 @@ module.exports = class EvaDocxTaskWriter extends DocxTaskWriter {
 
 	/**
 	 * todo Add description
-	 * @param {Array} series             Array of Step objects belonging to an actor or joint actors
+	 * @param {Series} series            Array of Step objects belonging to an actor or joint actors
 	 * @param {Array|string} columnKeys  String column key for the column, or array if joint actors
 	 *                                   from multiple columns
 	 * @return {Array}                   Array of docx.Paragraph objects
@@ -117,8 +117,10 @@ module.exports = class EvaDocxTaskWriter extends DocxTaskWriter {
 	writeSeries(series, columnKeys) {
 		const steps = [];
 		this.preInsertSteps();
-		for (const step of series) {
-			step.columnKeys = Array.isArray(columnKeys) ? columnKeys : [columnKeys];
+		for (const step of series.steps) {
+			// FIXME: shouldn't need to alter step props in this way. Why are column keys not set
+			// some other way? Should TaskWriter.insertStep instead pass step.parent.seriesActors?
+			step.props.columnKeys = Array.isArray(columnKeys) ? columnKeys : [columnKeys];
 			steps.push(...this.insertStep(step));
 		}
 		this.postInsertSteps();

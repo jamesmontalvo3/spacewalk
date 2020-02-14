@@ -138,15 +138,15 @@ module.exports = class EvaDivisionWriter {
 				columns[firstCol].series = division.subscenes[actors.key];
 				columns[firstCol].columnKeys = actors.columnKeys;
 			} else {
-				const series = taskWriter.writeSeries(
+				const seriesDisplay = taskWriter.writeSeries(
 					// get the division info by the key like "EV1 + EV2"
 					division.subscenes[actors.key],
 					actors.columnKeys
 				);
-				if (Array.isArray(series)) {
-					columns[firstCol].children.push(...series);
+				if (Array.isArray(seriesDisplay)) {
+					columns[firstCol].children.push(...seriesDisplay);
 				} else {
-					columns[firstCol].children.push(series);
+					columns[firstCol].children.push(seriesDisplay);
 				}
 			}
 		}
@@ -165,14 +165,17 @@ module.exports = class EvaDivisionWriter {
 
 			if (raw) {
 				columns[col].stateColumnKey = columnKey;
+
+				// FIXME shouldn't this be columnKey not actor
 				columns[col].series = division.subscenes[actor];
 				columns[col].columnKeys = [columnKey];
+
 			} else {
-				const series = taskWriter.writeSeries(division.subscenes[actor], columnKey);
-				if (Array.isArray(series)) {
-					columns[col].children.push(...series);
+				const seriesDisplay = taskWriter.writeSeries(division.subscenes[actor], columnKey);
+				if (Array.isArray(seriesDisplay)) {
+					columns[col].children.push(...seriesDisplay);
 				} else {
-					columns[col].children.push(series);
+					columns[col].children.push(seriesDisplay);
 				}
 			}
 		}

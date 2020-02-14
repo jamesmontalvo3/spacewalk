@@ -1,30 +1,71 @@
 const React = require('react');
 const PropTypes = require('prop-types');
+const { DndProvider } = require('react-dnd');
+const Backend = require('react-dnd-html5-backend').default;
+
+const ASMenuComponent = require('../layout/ActivitySelector/ASMenuComponent');
+const stateHandler = require('../../state/index');
 
 const ActivityComponent = require('../layout/ActivityComponent');
+const SummaryTimelineComponent = require('../layout/SummaryTimelineComponent');
 
 class ProcedureViewerComponent extends React.Component {
+
+	constructor(props) {
+		super(props);
+
+		this.state = {
+			currentActivityUuid: stateHandler.state.procedure.tasks[0].uuid,
+			showTimeline: true
+		};
+	}
+
+	updateCurrentActivity = (activityUuid) => {
+		console.log(`switching to activity ${activityUuid}`);
+		this.setState({ currentActivityUuid: activityUuid });
+	}
+
+	showTimeline = (show) => {
+		console.log(show ? 'showing timeline' : 'hiding timeline');
+		this.setState({ showTimeline: show });
+	}
+
 	render() {
 
-		return this.props.procedure.tasks.map((task, index) => (
-			<ActivityComponent
-				key={task.filename}
-				activity={task}
-				activityIndex={index}
-				procedure={this.props.procedure}
-				getProcedureWriter={this.props.getProcedureWriter}
-			/>
-		));
+		console.log('render ProcedureViewerComponent');
+
+		return (
+			<DndProvider backend={Backend}>
+				{ this.state.currentActivityUuid && !this.state.showTimeline ?
+					<React.Fragment>
+						<ASMenuComponent
+							currentActivityUuid={this.state.currentActivityUuid}
+							updateCurrentActivity={this.updateCurrentActivity}
+							showTimeline={this.showTimeline}
+						/>
+						<ActivityComponent
+							key={this.state.currentActivityUuid}
+							activityUuid={this.state.currentActivityUuid}
+						/>
+						<ASMenuComponent
+							currentActivityUuid={this.state.currentActivityUuid}
+							updateCurrentActivity={this.updateCurrentActivity}
+							showTimeline={this.showTimeline}
+						/>
+					</React.Fragment> :
+					<SummaryTimelineComponent
+						showTimeline={this.showTimeline}
+						updateCurrentActivity={this.updateCurrentActivity}
+					/>
+				}
+			</DndProvider>
+		);
 
 	}
 }
 
 ProcedureViewerComponent.propTypes = {
-	// These don't appear to be able to be marked required since procedure does exist on load.
-	// Certainly they are required for actual usage of this component. This is will get fixed when
-	// a proper router is used.
-	procedure: PropTypes.object,
-	getProcedureWriter: PropTypes.func.isRequired
+	procedureFile: PropTypes.string.isRequired
 };
 
 module.exports = ProcedureViewerComponent;

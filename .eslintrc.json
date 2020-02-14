@@ -38,7 +38,10 @@
 		"space-in-parens": ["error", "never"],
 		"computed-property-spacing": ["error", "never"],
 		"array-bracket-spacing": ["error", "never"],
-		"space-before-function-paren": ["error", "never"]
+		"space-before-function-paren": ["error", "never"],
+
+		// warn = 1, require = 2
+		"require-jsdoc": 1
 	},
 	"settings": {
 		"react": {

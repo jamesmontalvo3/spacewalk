@@ -97,6 +97,7 @@ for (const test of validInputs) {
 	durations.push(test.durationObject); // also create an array of just the duration objects
 }
 
+// eslint-disable-next-line require-jsdoc
 function testSingle(functionName, description) {
 	describe(`${functionName}()`, function() {
 		for (const test of validInputs) {

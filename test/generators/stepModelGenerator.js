@@ -1,7 +1,7 @@
 'use strict';
 
-const Step = require('../../app/model/Step');
-const taskRoleGenerator = require('./taskRoleGenerator');
+const Task = require('../../app/model/Task');
+const testProcedureGenerator = require('../../test/generators/testProcedureGenerator');
 
 /**
  *
@@ -16,11 +16,28 @@ const taskRoleGenerator = require('./taskRoleGenerator');
  * @return {Step}
  */
 function stepModelGenerator(stepDefinition, roleName, actorName) {
+	const procedure = testProcedureGenerator('simple/procedures/proc.yml');
+	const rolesRequired = {};
+	rolesRequired[roleName] = actorName;
 
-	const taskRoles = taskRoleGenerator.getSingleTaskRole(roleName, actorName);
-	const step = new Step(stepDefinition, actorName, taskRoles);
+	const division = {};
+	division[roleName] = stepDefinition;
 
-	return step;
+	const newTaskIndex = procedure.tasks.length;
+	procedure.TasksHandler.insertTask(
+		newTaskIndex,
+		new Task(
+			{ file: 'fooXYZ.yml', roles: rolesRequired },
+			procedure,
+			{
+				title: 'Foo XYZ',
+				roles: [{ name: roleName, duration: { minutes: 1 } }],
+				steps: [division]
+			}
+		)
+	);
+
+	return procedure.tasks[newTaskIndex].concurrentSteps[0].subscenes[actorName].steps[0];
 }
 
 module.exports = stepModelGenerator;
