@@ -137,6 +137,10 @@ module.exports = class Step {
 			def.actor = this.props.definitionActor;
 		}
 
+		if (this.location) {
+			def.location = this.location;
+		}
+
 		return def;
 	}
 
@@ -192,8 +196,8 @@ module.exports = class Step {
 			this.props.title = this.parseTitle(definition.title);
 		}
 
-		if (stepYaml.location) {
-			this.location = stepYaml.location;
+		if (definition.location) {
+			this.location = definition.location;
 		}
 
 		// Check for the text
