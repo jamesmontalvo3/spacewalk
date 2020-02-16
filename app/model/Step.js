@@ -137,8 +137,8 @@ module.exports = class Step {
 			def.actor = this.props.definitionActor;
 		}
 
-		if (this.location) {
-			def.location = this.location;
+		if (this.props.definitionLocation) {
+			def.location = this.props.definitionLocation;
 		}
 
 		return def;
@@ -163,6 +163,7 @@ module.exports = class Step {
 		this.props = {}; // wipes out pre-existing properties, so reload() can start over
 
 		this.props.definitionActor = definition.actor;
+		this.props.definitionLocation = definition.location;
 
 		// Initiate the vars as empty.
 		for (const prop of props.strings) {
@@ -194,10 +195,6 @@ module.exports = class Step {
 		// Check for the title
 		if (definition.title) {
 			this.props.title = this.parseTitle(definition.title);
-		}
-
-		if (definition.location) {
-			this.location = definition.location;
 		}
 
 		// Check for the text
