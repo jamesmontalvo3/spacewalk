@@ -326,6 +326,14 @@ module.exports = class Step {
 		);
 	}
 
+	getActors() {
+		return [this.props.definitionActor];
+	}
+
+	getLocation() {
+		return this.props.definitionLocation;
+	}
+
 	/**
 	 * Return formatted title
 	 *

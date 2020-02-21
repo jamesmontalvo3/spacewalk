@@ -40,12 +40,12 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 
 		for (const actor in division.subscenes) {
 
-			const actorStepData = division.subscenes[actor];
+			const seriesModel = division.subscenes[actor];
 
 			// returns array of step XML
-			const series = this.writeSeries(actorStepData);
+			const seriesDisplay = this.writeSeries(seriesModel);
 
-			for (const stepInfo of series) {
+			for (const stepInfo of seriesDisplay) {
 
 				if (!preRows[index]) { // initiate the first row
 					preRows[index] = stepInfo;
@@ -91,17 +91,18 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 		return row.stepContents.join('');
 	}
 
-	writeSeries(series, columnKeys) {
+	writeSeries(seriesModel, columnKeys) {
 		let previousActor = '';
 		let previousLocation = '';
 		const steps = [];
-		for (const step of series) {
+		for (const step of seriesModel.steps) {
 			let actor = '';
 			let location = '';
 			step.columnKeys = Array.isArray(columnKeys) ? columnKeys : [columnKeys];
 
-			if (step.actors[0] !== previousActor) {
-				actor = step.actors[0];
+			const checkActor = step.getActors()[0];
+			if (checkActor !== previousActor) {
+				actor = checkActor;
 				previousActor = actor;
 				// console.log('found new actor');
 			} else {
@@ -109,7 +110,7 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 				actor = '';
 			}
 			if (step.location !== previousLocation) {
-				location = step.location;
+				location = step.getLocation();
 				previousLocation = location;
 			} else {
 				location = '';
