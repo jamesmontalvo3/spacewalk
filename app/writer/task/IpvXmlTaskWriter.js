@@ -114,12 +114,12 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 
 	writeSeries(seriesModel, columnKeys) {
 		const steps = [];
-		for (const step of seriesModel.steps) {
-			step.columnKeys = Array.isArray(columnKeys) ? columnKeys : [columnKeys];
+		for (const stepModel of seriesModel.steps) {
+			stepModel.columnKeys = Array.isArray(columnKeys) ? columnKeys : [columnKeys];
 
 			steps.push({
-				stepModel: step,
-				stepView: this.insertStep(step)
+				stepModel: stepModel,
+				stepView: this.insertStep(stepModel)
 			});
 		}
 		return steps;
@@ -183,9 +183,10 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 	 * Creates text string for step
 	 * @param {*} stepText        Text to turn into a step
 	 * @param {*} options         options = { level: 0, actors: [], columnKey: "" }
+	 * @param {Step} stepModel    Step object
 	 * @return {string}
 	 */
-	addStepText(stepText, options = {}) {
+	addStepText(stepText, options = {}, stepModel) {
 		if (!options.level) {
 			options.level = 0;
 		}
@@ -213,10 +214,25 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 			throw new Error('addStepText() stepText must be string or array');
 		}
 
+		const numberedProps = ['title', 'text'];
+		// const stepNumber = stepModel.isSubstep() ? stepModel.getSubstepNumbers(numberedProps) :
+		// stepModel.getActivityStepNumber(numberedProps);
+		let stepNumber;
+		if (stepModel.isSubstep()) {
+			const stepNumComponents = [
+				stepModel.getRootStep().getActivityStepNumber(numberedProps)
+			];
+			stepNumComponents.push(...stepModel.getSubstepNumbers(numberedProps));
+			stepNumber = stepNumComponents.join('.');
+		} else {
+			stepNumber = stepModel.getActivityStepNumber(numberedProps);
+		}
+
 		return nunjucks.render('ipv-xml/step-text.xml', {
 			level: options.level,
 			actorText: options.actor,
-			stepText: texts.join('')
+			stepText: texts.join(''),
+			stepNumber: stepNumber
 		});
 	}
 
@@ -227,9 +243,10 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 	// });
 	// }
 
-	addTitleText(title) {
+	addTitleText(title, duration, stepModel) {
 		const subtaskTitle = nunjucks.render('ipv-xml/subtask-title.xml', {
-			title: this.textTransform.transform(title.toUpperCase().trim()).join('')
+			title: this.textTransform.transform(title.toUpperCase().trim()).join(''),
+			stepNumber: stepModel.getActivityStepNumber(['title', 'text'])
 		});
 
 		return subtaskTitle;

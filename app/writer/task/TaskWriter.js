@@ -243,13 +243,13 @@ module.exports = class TaskWriter extends Abstract {
 				level: level,
 				actors: step.context.actors,
 				columnKeys: step.props.columnKeys
-			});
+			}, step);
 		}
 
 		for (let t = 0; t < elements.title.length; t++) {
 			// why you'd want multiple titles I do not know...but just in case, apply addTitleText()
 			// to each of them.
-			elements.title[t] = this.addTitleText(elements.title[t], step.props.duration);
+			elements.title[t] = this.addTitleText(elements.title[t], step.props.duration, step);
 		}
 
 		if (elements.checkboxes.length) {

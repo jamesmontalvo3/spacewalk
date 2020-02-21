@@ -1,14 +1,14 @@
 <Step stepId="{{stepNumber|default("")}}">
     <StepTitle>
-    <LocationInfo>
-        {% if actorText %} <CrewMember> <Text>{{actorText}}</Text> </CrewMember> {% endif %}
-        {% if locationText %}<Location> <Text>{{locationText}}</Text> </Location> {% endif %}
-    </LocationInfo>
-    <StepNumber>{{stepNumber}}</StepNumber>
-    <Instruction>
-    <ClearText>
-    <Text>{{stepText}}</Text>
-    </ClearText>
-    </Instruction>
+        <LocationInfo>
+            {% if actorText %} <CrewMember> <Text>{{actorText}}</Text> </CrewMember> {% endif %}
+            {% if locationText %}<Location> <Text>{{locationText}}</Text> </Location> {% endif %}
+        </LocationInfo>
+        <StepNumber>{{stepNumber}}</StepNumber>
+        <Instruction>
+            <ClearText>
+                <Text>{{stepText}}</Text>
+            </ClearText>
+        </Instruction>
     </StepTitle>
 </Step>
