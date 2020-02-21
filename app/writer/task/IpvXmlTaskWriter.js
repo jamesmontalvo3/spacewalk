@@ -17,26 +17,14 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 		// this.getNumbering();
 	}
 
-	// FROM SODFDOCX task wirter
+	groupStepsByActorAndLocation(division) {
 
-	/**
-	 * Using a ConcurrentStep, write a division.
-	 * @param {ConcurrentStep} division    ConcurrentStep object
-	 * @return {Array}                     Array of docx.TableRow objects
-	 */
-	writeDivision(division) {
-		const tableRows = [];
-
-		const preRows = [];
+		const rows = [];
 		let index = 0;
 
 		const notSameActorAndLocation = (actor, location) => {
-			return preRows[index].actor !== actor || preRows[index].location !== location;
+			return rows[index].actor !== actor || rows[index].location !== location;
 		};
-
-		if (Object.keys(division.subscenes).length > 1) {
-			// throw new Error('Sodf does not currently support multiple actors in a division');
-		}
 
 		for (const actor in division.subscenes) {
 
@@ -47,19 +35,36 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 
 			for (const stepInfo of seriesDisplay) {
 
-				if (!preRows[index]) { // initiate the first row
-					preRows[index] = stepInfo;
+				if (!rows[index]) { // initiate the first row
+					rows[index] = stepInfo;
 				} else if (notSameActorAndLocation(stepInfo.actor, stepInfo.location)) {
 					index++;
-					preRows[index] = stepInfo; // create new row if actor/loc don't match prev
+					rows[index] = stepInfo; // create new row if actor/loc don't match prev
 				} else {
 					// append step contents to previous step contents if matching actor/location
-					preRows[index].stepContents.push(...stepInfo.stepContents);
+					rows[index].stepContents.push(...stepInfo.stepContents);
 				}
 			}
 		}
 
-		for (const row of preRows) {
+		return rows;
+	}
+
+	/**
+	 * Using a ConcurrentStep, write a division.
+	 * @param {ConcurrentStep} division    ConcurrentStep object
+	 * @return {Array}                     Array of docx.TableRow objects
+	 */
+	writeDivision(division) {
+
+		if (Object.keys(division.subscenes).length > 1) {
+			// throw new Error('Sodf does not currently support multiple actors in a division');
+		}
+
+		const rows = this.groupStepsByActorAndLocation(division); // calls writeSeries()
+
+		const tableRows = [];
+		for (const row of rows) {
 
 			const actor = row.actor === this.procedure.lastActor ? '' : row.actor;
 			const location = row.location === this.procedure.lastLocation ? '' : row.location;
@@ -96,29 +101,20 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 		let previousLocation = '';
 		const steps = [];
 		for (const step of seriesModel.steps) {
-			let actor = '';
-			let location = '';
 			step.columnKeys = Array.isArray(columnKeys) ? columnKeys : [columnKeys];
 
 			const checkActor = step.getActors()[0];
-			if (checkActor !== previousActor) {
-				actor = checkActor;
-				previousActor = actor;
-				// console.log('found new actor');
-			} else {
-				// console.log('same actor as before');
-				actor = '';
-			}
-			if (step.location !== previousLocation) {
-				location = step.getLocation();
-				previousLocation = location;
-			} else {
-				location = '';
-			}
+			const checkLocation = step.getLocation();
+
+			const actor = checkActor !== previousActor ? checkActor : '';
+			previousActor = actor;
+
+			const location = checkLocation !== previousLocation ? checkLocation : '';
+			previousLocation = location;
 
 			steps.push({
-				stepNumber: this.stepNumber,
-				actor: actor,
+				stepNumber: this.stepNumber, // FIXME replace with Step.getProcedureStepNumber()
+				actor: actor, // FIXME replace with step.context.actors[0]
 				location: location,
 				stepContents: this.insertStep(step)
 			});
