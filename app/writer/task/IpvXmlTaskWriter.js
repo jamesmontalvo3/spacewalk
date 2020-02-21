@@ -17,11 +17,13 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 		// this.getNumbering();
 	}
 
+	// ! FIXME delete this if not used below
 	groupStepsByActorAndLocation(division) {
 
 		const rows = [];
 		let index = 0;
 
+		// FIXME this should have row and stepInfo as params
 		const notSameActorAndLocation = (actor, location) => {
 			return rows[index].actor !== actor || rows[index].location !== location;
 		};
@@ -51,6 +53,31 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 	}
 
 	/**
+	 * As of this writing, this is the only TaskWriter that overrides the base writeDivisions()
+	 *
+	 * @return {Array} - Array of XML strings representing all divisions (so content of whole
+	 *                   activity)
+	 */
+	writeDivisions() {
+
+		const divisions = this.task.concurrentSteps;
+		const allActivitySteps = [];
+
+		for (const division of divisions) {
+			allActivitySteps.push(
+				...this.writeDivision(division)
+			);
+		}
+
+		// ! todo FIXME
+		// @Kris if you need to do anything with determining previous actors and locations, in order
+		// to figure out whether to display actor/location for each step, do so here.
+		// Possibly use groupStepsByActorAndLocation() above.
+
+		return allActivitySteps;
+	}
+
+	/**
 	 * Using a ConcurrentStep, write a division.
 	 * @param {ConcurrentStep} division    ConcurrentStep object
 	 * @return {Array}                     Array of docx.TableRow objects
@@ -59,64 +86,33 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 
 		if (Object.keys(division.subscenes).length > 1) {
 			// throw new Error('Sodf does not currently support multiple actors in a division');
+			console.error('IPV does not currently support multiple actors in a division');
 		}
 
-		const rows = this.groupStepsByActorAndLocation(division); // calls writeSeries()
+		const divisionView = [];
 
-		const tableRows = [];
-		for (const row of rows) {
-
-			const actor = row.actor === this.procedure.lastActor ? '' : row.actor;
-			const location = row.location === this.procedure.lastLocation ? '' : row.location;
-
-			tableRows.push(this.createRow(actor, location, row));
-
-			this.procedure.lastActor = row.actor;
-			this.procedure.lastLocation = row.location;
+		for (const seriesKey in division.subscenes) {
+			const seriesModel = division.subscenes[seriesKey];
+			divisionView.push(
+				// writeSeries returns array of [{stepModel, stepView}]
+				// writeDivision should return bigger version of array (concatenating all series')
+				// todo - this may stop being true if IPV comes up with way to handle parallelism,
+				// todo   or Maestro comes up with a way to emulate parallelism in IPV
+				...this.writeSeries(seriesModel)
+			);
 		}
 
-		return tableRows;
-	}
-
-	/**
-	 * Write a table row for an actor+location combination. Anytime actor or location changes a new
-	 * row will be created, and only the value that changed will be passed in. So if actor changes
-	 * but location stays the same, then location will be an empty string.
-	 * @param {string} actor            Actor performing step or empty string
-	 * @param {string} location         Location step is performed or empty string
-	 * @param {Object} row              Object like {
-	 *                                      stepNumber: 23,
-	 *                                      actor: 'IV',
-	 *                                      location: '',
-	 *                                      stepContent: [...]
-	 *                                  }
-	 * @return {string}                 HTML output of row
-	 */
-	createRow(actor, location, row) {
-		return row.stepContents.join('');
+		return divisionView;
 	}
 
 	writeSeries(seriesModel, columnKeys) {
-		let previousActor = '';
-		let previousLocation = '';
 		const steps = [];
 		for (const step of seriesModel.steps) {
 			step.columnKeys = Array.isArray(columnKeys) ? columnKeys : [columnKeys];
 
-			const checkActor = step.getActors()[0];
-			const checkLocation = step.getLocation();
-
-			const actor = checkActor !== previousActor ? checkActor : '';
-			previousActor = actor;
-
-			const location = checkLocation !== previousLocation ? checkLocation : '';
-			previousLocation = location;
-
 			steps.push({
-				stepNumber: this.stepNumber, // FIXME replace with Step.getProcedureStepNumber()
-				actor: actor, // FIXME replace with step.context.actors[0]
-				location: location,
-				stepContents: this.insertStep(step)
+				stepModel: step,
+				stepView: this.insertStep(step)
 			});
 		}
 		return steps;
