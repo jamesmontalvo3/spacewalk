@@ -12,6 +12,7 @@ const validateSchema = require('../schema/validateSchema');
 const Duration = require('./Duration');
 const TimeSync = require('./TimeSync');
 const consoleHelper = require('../helpers/consoleHelper');
+const arrayHelper = require('../helpers/arrayHelper');
 const Indexer = require('./Indexer');
 
 /**
@@ -38,23 +39,50 @@ function translatePath(procedureFilePath, taskFileName) {
 	return taskFilePath;
 }
 
+const ipvFieldDefinitions = {
+
+	// ! discuss with Kris
+	// Several numbers...if there was just one number then you could call it a generic procedure
+	// number, but with so many it becomes confusing and should be encapsulated as IPV specific
+	number: ['string', 'Procedure number like X.X.XXX'],
+	mNumber: ['string', 'Within IPV known as Unique ID, like M_12345'], // FIXME was uniqueId
+	procCode: ['string', 'FIXME'],
+
+	book: ['string', 'FIXME'],
+	applicability: ['string', 'FIXME'],
+
+	// ! discuss: Why different from Git? Or somehow driven by Git?
+	// calling this ipvVersion since it is different from Maestro version
+	ipvVersion: ['string', 'FIXME'],
+
+	objective: ['string', 'FIXME'],
+
+	crewRequired: ['array', 'FIXME'], // IPV way of annotating options; maybe someday Maestro handle
+
+	// These may all get replaced/managed by some higher-level state handler at some point. To
+	// simplify refactoring them, I think it makes sense to move them under an IPV header
+	parts: ['array', 'FIXME'],
+	materials: ['array', 'FIXME'],
+	tools: ['array', 'FIXME'],
+
+	// ! discuss: Not really locations, but descriptions of locations
+	ipvLocation: ['array', 'FIXME'],
+
+	// ! discuss: not a pure duration or set of durations. Includes options. Maybe someday Maestro
+	// will have this concept, but not yet. So encapsulate in ipvFields. Sometime sooner than having
+	// options there may be added a top-level Duration object, like `new Duration({hours: 6,
+	// minutes: 30})` to say that EVAs should be 6:30, and if activities cause deviation from this
+	// time then a warning should be given.
+	ipvDuration: ['array', 'FIXME'],
+
+	referencedProcedures: ['array', 'FIXME']
+};
+
 module.exports = class Procedure {
 
 	constructor(options = {}) {
+
 		this.name = '';
-		this.number = '';
-		this.uniqueId = '';
-		this.book = '';
-		this.applicability = '';
-		this.version = '';
-		this.procCode = '';
-		this.location = '';
-		this.duration = '';
-		this.crewRequired = '';
-		this.parts = [];
-		this.materials = [];
-		this.tools = [];
-		this.referencedProcedures = '';
 		this.filename = '';
 		this.actors = [];
 		this.indexer = new Indexer();
@@ -64,16 +92,28 @@ module.exports = class Procedure {
 	}
 
 	getOnlyProcedureDefinition() {
-		return {
+		const def = {
 			// eslint-disable-next-line camelcase
 			procedure_name: this.name,
 			columns: this.ColumnsHandler.getDefinition(),
 			tasks: this.TasksHandler.getRequirementsDefinitions()
 		};
+
+		if (this.ipvFields) {
+			for (const key in this.ipvFields) {
+				if (Array.isArray(this.ipvFields[key])) {
+					// FIXME arrays used here are not simple, and thus slice() doesn't do enough
+					def[key] = this.ipvFields[key].slice(0); // creates shallow clone of array
+				} else {
+					def[key] = this.ipvFields[key]; // assume scalar (currently no objects)
+				}
+			}
+		}
+
+		return def;
 	}
 
 	getDefinition() {
-
 		return {
 			procedureDefinition: this.getOnlyProcedureDefinition(),
 			taskDefinitions: this.TasksHandler.getTaskDefinitions()
@@ -287,23 +327,8 @@ module.exports = class Procedure {
 		// Save the procedure Name
 		this.setName(procDef.procedure_name);
 		this.number = procDef.procedure_number;
-		if (procDef.metaData) {
-			const ipvFileName = [procDef.procedure_number, procDef.metaData.uniqueid].join('_');
-			this.filename = filenamify(ipvFileName.replace(/\s+/g, '_'));
-			this.uniqueId = procDef.metaData.uniqueid;
-			this.book = procDef.metaData.book;
-			this.applicability = procDef.metaData.applicability;
-			this.version = procDef.metaData.version;
-			this.procCode = procDef.metaData.procCode;
-		}
-		this.objective = procDef.procedure_objective;
-		this.location = procDef.location;
-		this.duration = procDef.duration;
-		this.crewRequired = procDef.crew;
-		this.parts = procDef.parts;
-		this.materials = procDef.materials;
-		this.tools = procDef.tools;
-		this.referencedProcedures = procDef.referencedprocedures;
+
+		this.handleIpvFields(procDef.ipvFields);
 
 		if (procDef.columns) {
 			this.ColumnsHandler.updateColumns(procDef.columns);
@@ -315,6 +340,26 @@ module.exports = class Procedure {
 		this.tasks = this.TasksHandler.tasks;
 
 		return null;
+	}
+
+	handleIpvFields(ipvFields) {
+		if (!ipvFields) {
+			delete this.ipvFields; // in case it previously existed and was removed in editor UI
+			return;
+		}
+
+		this.ipvFields = {};
+		for (const key in ipvFieldDefinitions) {
+			const type = ipvFieldDefinitions[key][0];
+			// const description = ipvFieldDefinitions[key][1];
+			if (type === 'array') {
+				this.ipvFields[key] = arrayHelper.parseArray(ipvFields[key] || []);
+			} else if (type === 'string') {
+				this.ipvFields[key] = ipvFields[key] || '';
+			} else {
+				throw new Error('IPV fields only currently supports string or array');
+			}
+		}
 	}
 
 	loadTaskDefinitionsFromFiles() {

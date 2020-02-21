@@ -74,7 +74,14 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 		// to figure out whether to display actor/location for each step, do so here.
 		// Possibly use groupStepsByActorAndLocation() above.
 
-		return allActivitySteps;
+		// for now just throw out step model info and keep xml
+		const view = allActivitySteps.map(
+			({ /* stepModel, */ stepView }) => {
+				return stepView;
+			}
+		);
+
+		return view;
 	}
 
 	/**

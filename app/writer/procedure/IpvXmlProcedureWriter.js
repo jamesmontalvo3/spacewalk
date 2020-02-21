@@ -30,24 +30,14 @@ module.exports = class IpvXmlProcedureWriter extends ProcedureWriter {
 	}
 
 	renderIntro() {
-		this.content += nunjucks.render('ipv-xml/procedure-header.xml', {
-			name: this.procedure.name.replace('&', '&amp;'),
-			number: this.procedure.number,
-			uniqueId: this.procedure.uniqueId,
-			book: this.procedure.book,
-			applicability: this.procedure.applicability,
-			version: this.procedure.version,
-			procCode: this.procedure.procCode,
-			objective: this.procedure.objective,
-			location: this.procedure.location,
-			duration: this.procedure.duration,
-			crewRequired: this.procedure.crewRequired,
-			parts: this.procedure.parts,
-			materials: this.procedure.materials,
-			tools: this.procedure.tools,
-			referencedProcedures: this.procedure.referencedProcedures,
-			date: this.gitDateToIpvDate(this.program.getGitDate())
-		});
+		const vars = {};
+		for (const key in this.procedure.ipvFields) {
+			vars[key] = this.procedure.ipvFields[key];
+		}
+		vars.name = this.procedure.name.replace('&', '&amp;');
+		vars.date = this.gitDateToIpvDate(this.program.getGitDate());
+
+		this.content += nunjucks.render('ipv-xml/procedure-header.xml', vars);
 	}
 
 	wrapDocument() {

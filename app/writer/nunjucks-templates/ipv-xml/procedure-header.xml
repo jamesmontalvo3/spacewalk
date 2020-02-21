@@ -1,10 +1,10 @@
 <AuthoringTool>NASA/maestro</AuthoringTool>
 <MetaData procType="Nominal" status="FIN">
     <Date>{{date}}</Date>
-    <UniqueId>{{uniqueId}}</UniqueId>
+    <UniqueId>{{mNumber}}</UniqueId>
     <Book>{{book}}</Book>
     <Applicability>{{applicability}}</Applicability>
-    <Version>{{version}}</Version>
+    <Version>{{ipvVersion}}</Version>
     <ProcCode>{{procCode}}</ProcCode>
 </MetaData>
 <ProcTitle>
@@ -23,7 +23,7 @@
     <ListTitle>
         <Text>LOCATION:</Text>
     </ListTitle>
-    {% for line in location %}
+    {% for line in ipvLocation %}
     <Para>
         <text>{{line}}</text>
     </Para>
@@ -33,7 +33,7 @@
     <ListTitle>
         <Text>DURATION:</Text>
     </ListTitle>
-    {% for line in duration %}
+    {% for line in ipvDuration %}
     <Para>
         <Text>{{line}}</Text>
     </Para>
@@ -43,7 +43,7 @@
     <ListTitle>
         <Text>CREW:</Text>
     </ListTitle>
-    {% for line in crewRequired %}
+    {% for line in crew %}
     <Para>
         <Text>{{line}}</Text>
     </Para>
