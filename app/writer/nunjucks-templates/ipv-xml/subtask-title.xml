@@ -1,7 +1,1 @@
-{# Create subtask title #}
-<Step stepId="{{stepNumber}}">
-	<StepTitle>
-		<StepNumber>{{stepNumber}}</StepNumber>
-		<Text>{{title}}</Text>
-	</StepTitle>
-</Step>
+<Text>{{title}}</Text>

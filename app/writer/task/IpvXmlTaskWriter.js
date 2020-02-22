@@ -125,6 +125,68 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 		return steps;
 	}
 
+	/**
+	 * <Step>
+	 *   <StepTitle>
+	 *     <StepNumber>1.1.1.1</StepNumber>  <-- Required
+	 *     <Text>TITLE TEXT</Text>           <-- Use this for an underlined title
+	 *
+	 *     <Instruction>                     <-- Use something like this for regular text
+	 *       <ClearText>
+	 *         <Text>Some text</Text>
+	 *       </ClearText>
+	 *     </Instruction>
+	 *   </StepTitle>
+	 *
+	 *   Everything else
+	 * </Step>
+	 *
+	 *
+	 * @param {Object} elements
+	 * @param {Step} stepModel
+	 * @return {Array}
+	 */
+	combineInsertStepElements(elements, stepModel) {
+		return [
+			'<StepTitle>',
+			this.formatStepNumber(stepModel),
+			this.getActorAndLocationDisplay(stepModel),
+			...elements.title,
+			elements.body,
+			'</StepTitle>',
+
+			...elements.images,
+			...elements.prebody,
+			// in none-IPV, title and body go here
+			...elements.postbody,
+			...elements.checkboxes,
+			...elements.grandChildren
+		];
+	}
+
+	getActorAndLocationDisplay(stepModel) {
+
+		const actor = stepModel.getActors()[0];
+		const location = stepModel.getLocation();
+		let out = '';
+
+		if (actor !== this.lastActor && actor) {
+			out += `<CrewMember><Text>${actor}</Text></CrewMember>`;
+		}
+		if (location !== this.lastLocation && location) {
+			out += `<Location><Text>${location}</Text></Location>`;
+		}
+
+		this.lastActor = actor;
+		this.lastLocation = location;
+
+		return out ? `<LocationInfo>${out}</LocationInfo>` : '';
+	}
+
+	insertStepFinalProcess(children, stepModel) {
+		return [`<Step stepId="${stepModel.uuid}">${children.join('\n')}</Step>`];
+	}
+
 	addImages(images) {
 		const imageXmlArray = [];
 		const imagesPath = path.join(this.procedureWriter.program.imagesPath);
@@ -186,7 +248,7 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 	 * @param {Step} stepModel    Step object
 	 * @return {string}
 	 */
-	addStepText(stepText, options = {}, stepModel) {
+	addStepText(stepText, options = {}) {
 		if (!options.level) {
 			options.level = 0;
 		}
@@ -214,25 +276,10 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 			throw new Error('addStepText() stepText must be string or array');
 		}
 
-		const numberedProps = ['title', 'text'];
-		// const stepNumber = stepModel.isSubstep() ? stepModel.getSubstepNumbers(numberedProps) :
-		// stepModel.getActivityStepNumber(numberedProps);
-		let stepNumber;
-		if (stepModel.isSubstep()) {
-			const stepNumComponents = [
-				stepModel.getRootStep().getActivityStepNumber(numberedProps)
-			];
-			stepNumComponents.push(...stepModel.getSubstepNumbers(numberedProps));
-			stepNumber = stepNumComponents.join('.');
-		} else {
-			stepNumber = stepModel.getActivityStepNumber(numberedProps);
-		}
-
 		return nunjucks.render('ipv-xml/step-text.xml', {
 			level: options.level,
 			actorText: options.actor,
-			stepText: texts.join(''),
-			stepNumber: stepNumber
+			stepText: texts.join('')
 		});
 	}
 
@@ -242,6 +289,25 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 	// level
 	// });
 	// }
+
+	formatStepNumber(stepModel) {
+		const numberedProps = ['title', 'text'];
+		let stepNumber;
+		if (stepModel.isSubstep()) {
+			if (stepModel.getNumberingImpact() === 0) {
+				return '';
+			}
+			const stepNumComponents = [
+				stepModel.getRootStep().getActivityStepNumber(numberedProps)
+			];
+			stepNumComponents.push(...stepModel.getSubstepNumbers(numberedProps));
+			stepNumber = stepNumComponents.join('.');
+		} else {
+			stepNumber = stepModel.getActivityStepNumber(numberedProps);
+		}
+
+		return `<StepNumber>${stepNumber}</StepNumber>`;
+	}
 
 	addTitleText(title, duration, stepModel) {
 		const subtaskTitle = nunjucks.render('ipv-xml/subtask-title.xml', {

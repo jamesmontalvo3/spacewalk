@@ -327,7 +327,7 @@ module.exports = class Step {
 	}
 
 	getActors() {
-		return [this.props.definitionActor];
+		return this.context.actors;
 	}
 
 	getLocation() {
