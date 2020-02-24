@@ -327,7 +327,7 @@ module.exports = class Step {
 	}
 
 	getActors() {
-		return [this.props.definitionActor];
+		return this.context.actors;
 	}
 
 	getLocation() {
@@ -393,12 +393,24 @@ module.exports = class Step {
 		};
 	}
 
-	getRootSeries() {
-		let series = this.parent;
-		while (series.constructor.name !== 'Series') {
-			series = series.parent;
+	isSubstep() {
+		return this.parent.constructor.name !== 'Series';
+	}
+
+	getRootStep() {
+		if (this.isSubstep()) {
+			let currentStep = this.parent.parent;
+			while (currentStep.isSubstep()) {
+				currentStep = currentStep.parent.parent;
+			}
+			return currentStep;
+		} else {
+			return this; // this already is the root step, so return self
 		}
-		return series;
+	}
+
+	getRootSeries() {
+		return this.getRootStep().parent;
 	}
 
 	/**
@@ -433,7 +445,7 @@ module.exports = class Step {
 
 	}
 
-	getActivityStepNumber() {
+	getActivityStepNumber(numberedProps = undefined) {
 		const series = this.getRootSeries();
 		const division = series.parent;
 		const activity = division.parent;
@@ -441,7 +453,7 @@ module.exports = class Step {
 		// return series.getSeriesStepNumber(this) +
 		// division.getNumStepsPriorToSeries(series) +
 		// activity.getNumStepsPriorToDivision(division);
-		const s = series.getSeriesStepNumber(this);
+		const s = series.getSeriesStepNumber(this, numberedProps);
 		const d = division.getNumStepsPriorToSeries(series);
 		const a = activity.getNumStepsPriorToDivision(division);
 
@@ -450,13 +462,14 @@ module.exports = class Step {
 
 	}
 
-	getProcedureStepNumber() {
+	getProcedureStepNumber(numberedProps = undefined) {
 		const activity = this.getRootSeries().parent.parent;
 		const procedure = activity.procedure;
-		return procedure.getNumStepsPriorToActivity(activity) + this.getActivityStepNumber();
+		return procedure.getNumStepsPriorToActivity(activity) +
+			this.getActivityStepNumber(numberedProps);
 	}
 
-	getSubstepNumber() {
+	getSubstepNumber(numberedProps = undefined) {
 		//            DummySeries ⮢       ⮣ parent Step
 		const substepList = this.parent.parent.props.substeps;
 		let stepNum = 1;
@@ -464,13 +477,13 @@ module.exports = class Step {
 			if (substepList[i] === this) {
 				return stepNum;
 			} else {
-				stepNum += substepList[i].getNumberingImpact();
+				stepNum += substepList[i].getNumberingImpact(numberedProps);
 			}
 		}
 		throw new Error(`sub-Step ${this.uuid} not within ${this.parent.parent.uuid}`);
 	}
 
-	getSubstepNumbers() {
+	getSubstepNumbers(numberedProps = undefined) {
 		const parentStepNums = [];
 		let currentStep = this;
 		let currentSeries = this.parent;
@@ -478,11 +491,9 @@ module.exports = class Step {
 			currentSeries.constructor.name === 'DummySeries'
 		) {
 			if (currentSeries.constructor.name === 'DummySeries') {
-				const substepNum = currentSeries.parent.props.substeps.indexOf(currentStep);
-				if (substepNum === -1) {
-					throw new Error(`Step ${currentStep.uuid} not substep of ${currentSeries.parent.uuid}`);
-				}
-				parentStepNums.push(substepNum + 1);
+				// const substepNum = currentSeries.parent.props.substeps.indexOf(currentStep);
+				const substepNum = currentStep.getSubstepNumber(numberedProps);
+				parentStepNums.push(substepNum);
 			}
 
 			currentStep = currentSeries.parent;

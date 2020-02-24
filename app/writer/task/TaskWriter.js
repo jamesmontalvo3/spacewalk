@@ -243,13 +243,13 @@ module.exports = class TaskWriter extends Abstract {
 				level: level,
 				actors: step.context.actors,
 				columnKeys: step.props.columnKeys
-			});
+			}, step);
 		}
 
 		for (let t = 0; t < elements.title.length; t++) {
 			// why you'd want multiple titles I do not know...but just in case, apply addTitleText()
 			// to each of them.
-			elements.title[t] = this.addTitleText(elements.title[t], step.props.duration);
+			elements.title[t] = this.addTitleText(elements.title[t], step.props.duration, step);
 		}
 
 		if (elements.checkboxes.length) {
@@ -295,7 +295,17 @@ module.exports = class TaskWriter extends Abstract {
 		// allow TaskWriters to alter elements at this point.
 		this.insertStepPostProcess(elements, step);
 
-		const children = [
+		const children = this.combineInsertStepElements(elements, step);
+
+		if (!level || level === 0) {
+			this.stepNumber++;
+		}
+
+		return this.insertStepFinalProcess(children, step);
+	}
+
+	combineInsertStepElements(elements) {
+		return [
 			...elements.images,
 			...elements.prebody,
 			...elements.title,
@@ -304,15 +314,13 @@ module.exports = class TaskWriter extends Abstract {
 			...elements.checkboxes,
 			...elements.grandChildren
 		];
-
-		if (!level || level === 0) {
-			this.stepNumber++;
-		}
-
-		return children;
 	}
 
 	insertStepPostProcess(/* elements, step */) {
 		return true;
+	}
+
+	insertStepFinalProcess(children) {
+		return children;
 	}
 };

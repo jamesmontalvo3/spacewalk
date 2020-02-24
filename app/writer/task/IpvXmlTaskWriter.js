@@ -17,26 +17,16 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 		// this.getNumbering();
 	}
 
-	// FROM SODFDOCX task wirter
+	// ! FIXME delete this if not used below
+	groupStepsByActorAndLocation(division) {
 
-	/**
-	 * Using a ConcurrentStep, write a division.
-	 * @param {ConcurrentStep} division    ConcurrentStep object
-	 * @return {Array}                     Array of docx.TableRow objects
-	 */
-	writeDivision(division) {
-		const tableRows = [];
-
-		const preRows = [];
+		const rows = [];
 		let index = 0;
 
+		// FIXME this should have row and stepInfo as params
 		const notSameActorAndLocation = (actor, location) => {
-			return preRows[index].actor !== actor || preRows[index].location !== location;
+			return rows[index].actor !== actor || rows[index].location !== location;
 		};
-
-		if (Object.keys(division.subscenes).length > 1) {
-			// throw new Error('Sodf does not currently support multiple actors in a division');
-		}
 
 		for (const actor in division.subscenes) {
 
@@ -47,83 +37,154 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 
 			for (const stepInfo of seriesDisplay) {
 
-				if (!preRows[index]) { // initiate the first row
-					preRows[index] = stepInfo;
+				if (!rows[index]) { // initiate the first row
+					rows[index] = stepInfo;
 				} else if (notSameActorAndLocation(stepInfo.actor, stepInfo.location)) {
 					index++;
-					preRows[index] = stepInfo; // create new row if actor/loc don't match prev
+					rows[index] = stepInfo; // create new row if actor/loc don't match prev
 				} else {
 					// append step contents to previous step contents if matching actor/location
-					preRows[index].stepContents.push(...stepInfo.stepContents);
+					rows[index].stepContents.push(...stepInfo.stepContents);
 				}
 			}
 		}
 
-		for (const row of preRows) {
-
-			const actor = row.actor === this.procedure.lastActor ? '' : row.actor;
-			const location = row.location === this.procedure.lastLocation ? '' : row.location;
-
-			tableRows.push(this.createRow(actor, location, row));
-
-			this.procedure.lastActor = row.actor;
-			this.procedure.lastLocation = row.location;
-		}
-
-		return tableRows;
+		return rows;
 	}
 
 	/**
-	 * Write a table row for an actor+location combination. Anytime actor or location changes a new
-	 * row will be created, and only the value that changed will be passed in. So if actor changes
-	 * but location stays the same, then location will be an empty string.
-	 * @param {string} actor            Actor performing step or empty string
-	 * @param {string} location         Location step is performed or empty string
-	 * @param {Object} row              Object like {
-	 *                                      stepNumber: 23,
-	 *                                      actor: 'IV',
-	 *                                      location: '',
-	 *                                      stepContent: [...]
-	 *                                  }
-	 * @return {string}                 HTML output of row
+	 * As of this writing, this is the only TaskWriter that overrides the base writeDivisions()
+	 *
+	 * @return {Array} - Array of XML strings representing all divisions (so content of whole
+	 *                   activity)
 	 */
-	createRow(actor, location, row) {
-		return row.stepContents.join('');
+	writeDivisions() {
+
+		const divisions = this.task.concurrentSteps;
+		const allActivitySteps = [];
+
+		for (const division of divisions) {
+			allActivitySteps.push(
+				...this.writeDivision(division)
+			);
+		}
+
+		// ! todo FIXME
+		// @Kris if you need to do anything with determining previous actors and locations, in order
+		// to figure out whether to display actor/location for each step, do so here.
+		// Possibly use groupStepsByActorAndLocation() above.
+
+		// for now just throw out step model info and keep xml
+		const view = allActivitySteps.map(
+			({ /* stepModel, */ stepView }) => {
+				return stepView;
+			}
+		);
+
+		return view;
+	}
+
+	/**
+	 * Using a ConcurrentStep, write a division.
+	 * @param {ConcurrentStep} division    ConcurrentStep object
+	 * @return {Array}                     Array of docx.TableRow objects
+	 */
+	writeDivision(division) {
+
+		if (Object.keys(division.subscenes).length > 1) {
+			// throw new Error('Sodf does not currently support multiple actors in a division');
+			console.error('IPV does not currently support multiple actors in a division');
+		}
+
+		const divisionView = [];
+
+		for (const seriesKey in division.subscenes) {
+			const seriesModel = division.subscenes[seriesKey];
+			divisionView.push(
+				// writeSeries returns array of [{stepModel, stepView}]
+				// writeDivision should return bigger version of array (concatenating all series')
+				// todo - this may stop being true if IPV comes up with way to handle parallelism,
+				// todo   or Maestro comes up with a way to emulate parallelism in IPV
+				...this.writeSeries(seriesModel)
+			);
+		}
+
+		return divisionView;
 	}
 
 	writeSeries(seriesModel, columnKeys) {
-		let previousActor = '';
-		let previousLocation = '';
 		const steps = [];
-		for (const step of seriesModel.steps) {
-			let actor = '';
-			let location = '';
-			step.columnKeys = Array.isArray(columnKeys) ? columnKeys : [columnKeys];
-
-			const checkActor = step.getActors()[0];
-			if (checkActor !== previousActor) {
-				actor = checkActor;
-				previousActor = actor;
-				// console.log('found new actor');
-			} else {
-				// console.log('same actor as before');
-				actor = '';
-			}
-			if (step.location !== previousLocation) {
-				location = step.getLocation();
-				previousLocation = location;
-			} else {
-				location = '';
-			}
+		for (const stepModel of seriesModel.steps) {
+			stepModel.columnKeys = Array.isArray(columnKeys) ? columnKeys : [columnKeys];
 
 			steps.push({
-				stepNumber: this.stepNumber,
-				actor: actor,
-				location: location,
-				stepContents: this.insertStep(step)
+				stepModel: stepModel,
+				stepView: this.insertStep(stepModel)
 			});
 		}
 		return steps;
+	}
+
+	/**
+	 * <Step>
+	 *   <StepTitle>
+	 *     <StepNumber>1.1.1.1</StepNumber>  <-- Required
+	 *     <Text>TITLE TEXT</Text>           <-- Use this for an underlined title
+	 *
+	 *     <Instruction>                     <-- Use something like this for regular text
+	 *       <ClearText>
+	 *         <Text>Some text</Text>
+	 *       </ClearText>
+	 *     </Instruction>
+	 *   </StepTitle>
+	 *
+	 *   Everything else
+	 * </Step>
+	 *
+	 *
+	 * @param {Object} elements
+	 * @param {Step} stepModel
+	 * @return {Array}
+	 */
+	combineInsertStepElements(elements, stepModel) {
+		return [
+			'<StepTitle>',
+			this.formatStepNumber(stepModel),
+			this.getActorAndLocationDisplay(stepModel),
+			...elements.title,
+			elements.body,
+			'</StepTitle>',
+
+			...elements.images,
+			...elements.prebody,
+			// in none-IPV, title and body go here
+			...elements.postbody,
+			...elements.checkboxes,
+			...elements.grandChildren
+		];
+	}
+
+	getActorAndLocationDisplay(stepModel) {
+
+		const actor = stepModel.getActors()[0];
+		const location = stepModel.getLocation();
+		let out = '';
+
+		if (actor !== this.lastActor && actor) {
+			out += `<CrewMember><Text>${actor}</Text></CrewMember>`;
+		}
+		if (location !== this.lastLocation && location) {
+			out += `<Location><Text>${location}</Text></Location>`;
+		}
+
+		this.lastActor = actor;
+		this.lastLocation = location;
+
+		return out ? `<LocationInfo>${out}</LocationInfo>` : '';
+	}
+
+	insertStepFinalProcess(children, stepModel) {
+		return [`<Step stepId="${stepModel.uuid}">${children.join('\n')}</Step>`];
 	}
 
 	addImages(images) {
@@ -184,6 +245,7 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 	 * Creates text string for step
 	 * @param {*} stepText        Text to turn into a step
 	 * @param {*} options         options = { level: 0, actors: [], columnKey: "" }
+	 * @param {Step} stepModel    Step object
 	 * @return {string}
 	 */
 	addStepText(stepText, options = {}) {
@@ -228,9 +290,29 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 	// });
 	// }
 
-	addTitleText(title) {
+	formatStepNumber(stepModel) {
+		const numberedProps = ['title', 'text'];
+		let stepNumber;
+		if (stepModel.isSubstep()) {
+			if (stepModel.getNumberingImpact() === 0) {
+				return '';
+			}
+			const stepNumComponents = [
+				stepModel.getRootStep().getActivityStepNumber(numberedProps)
+			];
+			stepNumComponents.push(...stepModel.getSubstepNumbers(numberedProps));
+			stepNumber = stepNumComponents.join('.');
+		} else {
+			stepNumber = stepModel.getActivityStepNumber(numberedProps);
+		}
+
+		return `<StepNumber>${stepNumber}</StepNumber>`;
+	}
+
+	addTitleText(title, duration, stepModel) {
 		const subtaskTitle = nunjucks.render('ipv-xml/subtask-title.xml', {
-			title: this.textTransform.transform(title.toUpperCase().trim()).join('')
+			title: this.textTransform.transform(title.toUpperCase().trim()).join(''),
+			stepNumber: stepModel.getActivityStepNumber(['title', 'text'])
 		});
 
 		return subtaskTitle;
