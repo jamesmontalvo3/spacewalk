@@ -107,15 +107,12 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 	 */
 	combineInsertStepElements(elements, stepModel) {
 
-		let texts;
-		let lesserTitle;
+		let texts = elements.body;
+		let lesserTitle = '';
 
 		if (!elements.title || !elements.title.length) {
-			lesserTitle = `<Instruction><ClearText>${elements.body[0]}<ClearText></Instruction>`;
-			texts = elements.body.slice(1);
-		} else {
-			lesserTitle = '';
-			texts = elements.body;
+			lesserTitle = texts.shift();
+			lesserTitle = `<Instruction><ClearText><Text>${lesserTitle}</Text></ClearText></Instruction>`;
 		}
 
 		texts = nunjucks.render('ipv-xml/step-text.xml', { texts });
@@ -128,7 +125,7 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 			lesserTitle,
 			'</StepTitle>',
 
-			...texts,
+			texts,
 
 			...elements.images,
 			...elements.prebody,
@@ -223,20 +220,7 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 	 * @param {Step} stepModel    Step object
 	 * @return {string}
 	 */
-	addStepText(stepText, options = {}) {
-
-		// FIXME remove these
-		/*
-		if (!options.level) {
-			options.level = 0;
-		}
-		if (!options.actors) {
-			options.actors = [];
-		}
-		if (!options.columnKeys) {
-			options.columnKeys = [];
-		}
-		*/
+	addStepText(stepText) {
 
 		const texts = [];
 		if (typeof stepText === 'string') {
@@ -249,17 +233,11 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 				} else if (!Array.isArray(elem)) {
 					throw new Error('Expect string or array');
 				}
-				texts.push(...elem);
+				texts.push(elem.join(''));
 			}
 		} else {
 			throw new Error('addStepText() stepText must be string or array');
 		}
-
-		// return nunjucks.render('ipv-xml/step-text.xml', {
-		// level: options.level,
-		// actorText: options.actor,
-		// stepTextLines: texts
-		// });
 
 		return texts;
 	}
