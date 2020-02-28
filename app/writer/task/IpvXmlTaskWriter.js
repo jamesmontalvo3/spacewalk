@@ -106,13 +106,26 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 	 * @return {Array}
 	 */
 	combineInsertStepElements(elements, stepModel) {
+
+		let texts = elements.body;
+		let lesserTitle = '';
+
+		if (!elements.title || !elements.title.length) {
+			lesserTitle = texts.shift();
+			lesserTitle = `<Instruction><ClearText><Text>${lesserTitle}</Text></ClearText></Instruction>`;
+		}
+
+		texts = nunjucks.render('ipv-xml/step-text.xml', { texts });
+
 		return [
 			'<StepTitle>',
 			this.formatStepNumber(stepModel),
 			this.getActorAndLocationDisplay(stepModel),
 			...elements.title,
-			elements.body,
+			lesserTitle,
 			'</StepTitle>',
+
+			texts,
 
 			...elements.images,
 			...elements.prebody,
@@ -207,16 +220,7 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 	 * @param {Step} stepModel    Step object
 	 * @return {string}
 	 */
-	addStepText(stepText, options = {}) {
-		if (!options.level) {
-			options.level = 0;
-		}
-		if (!options.actors) {
-			options.actors = [];
-		}
-		if (!options.columnKeys) {
-			options.columnKeys = [];
-		}
+	addStepText(stepText) {
 
 		const texts = [];
 		if (typeof stepText === 'string') {
@@ -229,17 +233,13 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 				} else if (!Array.isArray(elem)) {
 					throw new Error('Expect string or array');
 				}
-				texts.push(...elem);
+				texts.push(elem.join(''));
 			}
 		} else {
 			throw new Error('addStepText() stepText must be string or array');
 		}
 
-		return nunjucks.render('ipv-xml/step-text.xml', {
-			level: options.level,
-			actorText: options.actor,
-			stepText: texts.join('')
-		});
+		return texts;
 	}
 
 	// addCheckStepText(stepText, level, parent) {
@@ -271,7 +271,7 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 	addTitleText(title, duration, stepModel) {
 		const subtaskTitle = nunjucks.render('ipv-xml/subtask-title.xml', {
 			title: this.textTransform.transform(title.toUpperCase().trim()).join(''),
-			stepNumber: stepModel.getActivityStepNumber(['title', 'text'])
+			stepNumber: this.formatStepNumber(stepModel) // .getActivityStepNumber(['title', 'text'])
 		});
 
 		return subtaskTitle;
