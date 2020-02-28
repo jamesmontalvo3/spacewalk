@@ -17,41 +17,6 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 		// this.getNumbering();
 	}
 
-	// ! FIXME delete this if not used below
-	groupStepsByActorAndLocation(division) {
-
-		const rows = [];
-		let index = 0;
-
-		// FIXME this should have row and stepInfo as params
-		const notSameActorAndLocation = (actor, location) => {
-			return rows[index].actor !== actor || rows[index].location !== location;
-		};
-
-		for (const actor in division.subscenes) {
-
-			const seriesModel = division.subscenes[actor];
-
-			// returns array of step XML
-			const seriesDisplay = this.writeSeries(seriesModel);
-
-			for (const stepInfo of seriesDisplay) {
-
-				if (!rows[index]) { // initiate the first row
-					rows[index] = stepInfo;
-				} else if (notSameActorAndLocation(stepInfo.actor, stepInfo.location)) {
-					index++;
-					rows[index] = stepInfo; // create new row if actor/loc don't match prev
-				} else {
-					// append step contents to previous step contents if matching actor/location
-					rows[index].stepContents.push(...stepInfo.stepContents);
-				}
-			}
-		}
-
-		return rows;
-	}
-
 	/**
 	 * As of this writing, this is the only TaskWriter that overrides the base writeDivisions()
 	 *
@@ -69,12 +34,6 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 			);
 		}
 
-		// ! todo FIXME
-		// @Kris if you need to do anything with determining previous actors and locations, in order
-		// to figure out whether to display actor/location for each step, do so here.
-		// Possibly use groupStepsByActorAndLocation() above.
-
-		// for now just throw out step model info and keep xml
 		const view = allActivitySteps.map(
 			({ /* stepModel, */ stepView }) => {
 				return stepView;

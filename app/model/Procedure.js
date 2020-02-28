@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const YAML = require('js-yaml');
 const filenamify = require('filenamify');
+const cloneDeep = require('lodash/cloneDeep');
 
 const ColumnsHandler = require('./ColumnsHandler');
 const TasksHandler = require('./TasksHandler');
@@ -41,41 +42,33 @@ function translatePath(procedureFilePath, taskFileName) {
 
 const ipvFieldDefinitions = {
 
-	// ! discuss with Kris
 	// Several numbers...if there was just one number then you could call it a generic procedure
 	// number, but with so many it becomes confusing and should be encapsulated as IPV specific
 	number: ['string', 'Procedure number like X.X.XXX'],
-	mNumber: ['string', 'Within IPV known as Unique ID, like M_12345'], // FIXME was uniqueId
-	procCode: ['string', 'FIXME'],
+	mNumber: ['string', 'Within IPV known as Unique ID, like M_12345'],
+	procCode: ['string', 'IPV procedure code such as ISS IFM/E58 - ALL/FIN'],
 
-	book: ['string', 'FIXME'],
-	applicability: ['string', 'FIXME'],
+	book: ['string', 'IPV book that procedure is published to'],
+	applicability: ['string', 'Procedure applicability such as E58 - ALL'],
+	ipvVersion: ['string', 'Version of this procedure.'],
 
-	// ! discuss: Why different from Git? Or somehow driven by Git?
-	// calling this ipvVersion since it is different from Maestro version
-	ipvVersion: ['string', 'FIXME'],
+	procedureobjective: ['string', 'Procedure objective which describes purpose/assumptions of procedure'],
 
-	objective: ['string', 'FIXME'],
-
-	crewRequired: ['array', 'FIXME'], // IPV way of annotating options; maybe someday Maestro handle
+	crewRequired: ['array', 'How many crew members are required for the procedure'], // IPV way of annotating options; maybe someday Maestro handle
 
 	// These may all get replaced/managed by some higher-level state handler at some point. To
 	// simplify refactoring them, I think it makes sense to move them under an IPV header
-	parts: ['array', 'FIXME'],
-	materials: ['array', 'FIXME'],
-	tools: ['array', 'FIXME'],
-
-	// ! discuss: Not really locations, but descriptions of locations
-	ipvLocation: ['array', 'FIXME'],
-
-	// ! discuss: not a pure duration or set of durations. Includes options. Maybe someday Maestro
+	parts: ['array', 'Parts used in procedure'],
+	materials: ['array', 'Materials used in procedure'],
+	tools: ['array', 'Tools used in procedure'],
+	ipvLocation: ['array', 'Description of location(s) where procedure is performed'],
 	// will have this concept, but not yet. So encapsulate in ipvFields. Sometime sooner than having
 	// options there may be added a top-level Duration object, like `new Duration({hours: 6,
 	// minutes: 30})` to say that EVAs should be 6:30, and if activities cause deviation from this
 	// time then a warning should be given.
-	ipvDuration: ['array', 'FIXME'],
+	ipvDuration: ['array', 'Description of how long procedure will take to perform'],
 
-	referencedProcedures: ['array', 'FIXME']
+	referencedProcedures: ['array', 'IPV procedures referenced in this procedure']
 };
 
 module.exports = class Procedure {
@@ -102,8 +95,7 @@ module.exports = class Procedure {
 		if (this.ipvFields) {
 			for (const key in this.ipvFields) {
 				if (Array.isArray(this.ipvFields[key])) {
-					// FIXME arrays used here are not simple, and thus slice() doesn't do enough
-					def[key] = this.ipvFields[key].slice(0); // creates shallow clone of array
+					def[key] = cloneDeep(this.ipvFields[key]); // creates shallow clone of array
 				} else {
 					def[key] = this.ipvFields[key]; // assume scalar (currently no objects)
 				}
