@@ -1,5 +1,9 @@
-<Instruction>
-    <ClearText>
-        <Text>{{stepText}}</Text>
-    </ClearText>
-</Instruction>
+{% for line in texts %}
+<StepContent>
+    <Instruction>
+        <ClearText>
+            <Text>{{line}}</Text>
+        </ClearText>
+    </Instruction>
+</StepContent>
+{% endfor %}
