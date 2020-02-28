@@ -74,10 +74,11 @@ module.exports = class SodfDocxTaskWriter extends DocxTaskWriter {
 			right: borderValues
 		};
 
-		const createRow = (content) => {
+		const createCell = (content) => {
 			if (typeof content === 'string') {
 				content = [new docx.Paragraph({ text: content })]; // wrap in an array of paragraph
 			}
+			console.log(content);
 			return new docx.TableCell({
 				children: content,
 				verticalAlign: docx.VerticalAlign.TOP,
@@ -87,9 +88,9 @@ module.exports = class SodfDocxTaskWriter extends DocxTaskWriter {
 
 		return new docx.TableRow({
 			children: [
-				createRow(actor),
-				createRow(location),
-				createRow(stepParagraphs)
+				createCell(actor),
+				createCell(location),
+				createCell(stepParagraphs)
 			]
 		});
 	}

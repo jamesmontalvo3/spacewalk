@@ -1,0 +1,10 @@
+{# Create image #}
+<StepContent itemId="">
+    <Image display="inline">
+        <ImageReference alt="{{path}}" height="{{height}}" source="{{path}}" width="{{width}}"/>
+        <ImageTitle>
+            <ImageNumber>{{imageNumber}}</ImageNumber>
+            <Text>{{imageCaption}}</Text>
+        </ImageTitle>
+    </Image>
+</StepContent>

@@ -1,0 +1,129 @@
+<AuthoringTool>NASA/maestro</AuthoringTool>
+<MetaData procType="Nominal" status="FIN">
+    <Date>{{date}}</Date>
+    <UniqueId>{{mNumber}}</UniqueId>
+    <Book>{{book}}</Book>
+    <Applicability>{{applicability}}</Applicability>
+    <Version>{{ipvVersion}}</Version>
+    <ProcCode>{{procCode}}</ProcCode>
+</MetaData>
+<ProcTitle>
+    <ProcNumber>{{number|default("X.X.XXX")}}</ProcNumber>
+    <Text>{{name}}</Text>
+</ProcTitle>
+<TimeRequirement>
+    <?xm-replace_text {Time Requirement}?>
+</TimeRequirement>
+<ProcedureObjective>
+    <Para>
+        <Text>{{objective}}</Text>
+    </Para>
+</ProcedureObjective>
+<ItemizedList>
+    <ListTitle>
+        <Text>LOCATION:</Text>
+    </ListTitle>
+    {% for line in ipvLocation %}
+    <Para>
+        <text>{{line}}</text>
+    </Para>
+    {% endfor %}
+</ItemizedList>
+<ItemizedList>
+    <ListTitle>
+        <Text>DURATION:</Text>
+    </ListTitle>
+    {% for line in ipvDuration %}
+    <Para>
+        <Text>{{line}}</Text>
+    </Para>
+    {% endfor %}
+</ItemizedList>
+<ItemizedList>
+    <ListTitle>
+        <Text>CREW:</Text>
+    </ListTitle>
+    {% for line in crew %}
+    <Para>
+        <Text>{{line}}</Text>
+    </Para>
+    {% endfor %}
+</ItemizedList>
+<ToolsPartsMaterials>
+    <Parts>
+    {% for part in parts %}
+        <ToolsItem toolId="">
+            <ToolsItemName>
+                <Text>{{parts[loop.index0].toolName}}</Text>
+            </ToolsItemName>
+             {% if parts[loop.index0].partNumber %}
+            <PartNumber>
+                <Text>{{parts[loop.index0].partNumber}}</Text>
+            </PartNumber>
+            {% endif %}
+        </ToolsItem>
+    {% endfor %}
+    </Parts>
+    <Materials>
+    {% for material in materials %}
+        <ToolsItem toolId="">
+            <ToolsItemName>
+                <Text>{{materials[loop.index0].toolName}}</Text>
+            </ToolsItemName>
+            {% if materials[loop.index0].partNumber %}
+            <PartNumber>
+                <Text>{{materials[loop.index0].partNumber}}</Text>
+            </PartNumber>
+            {% endif %}
+            {% if materials[loop.index0].quantity %}
+            <Quantity>
+                <Text>{{materials[loop.index0].quantity}}</Text>
+            </Quantity>
+            {% endif %}
+            {% if materials[loop.index0].comment %}
+            <Comment>
+                <Text>{{materials[loop.index0].comment}}</Text>
+            </Comment>
+            {% endif %}
+        </ToolsItem>
+    {% endfor %}
+    </Materials>
+    <Tools>
+     {% for tool in tools %}
+     {% if tools[loop.index0].toolName %}
+        <ToolsItem toolId="">
+            <ToolsItemName>
+                <Text>{{tools[loop.index0].toolName}}</Text>
+            </ToolsItemName>
+            {% if tools[loop.index0].partName %}
+            <PartNumber>
+                <Text>{{tools[loop.index0].partNumber}}</Text>
+            </PartNumber>
+            {% endif %}
+        </ToolsItem>
+     {% endif %}
+     {% if tools[loop.index0].containerName %}
+        <ContainerItem>
+            <ToolsItem toolId="">
+                <ToolsItemName>
+                    <Text>{{tools[loop.index0].containerName}}</Text>
+                </ToolsItemName>
+            </ToolsItem>
+        </ContainerItem>
+     {% endif %}
+
+
+
+    {% endfor %}
+    </Tools>
+</ToolsPartsMaterials>
+<ItemizedList>
+    <ListTitle>
+        <Text>REFERENCED PROCEDURE(S):</Text>
+    </ListTitle>
+{% for line in referencedProcedures %}
+    <Para>
+        <Text>{{line|default("None")}}</Text>
+    </Para>
+{% endfor %}
+</ItemizedList>

@@ -1,0 +1,8 @@
+{# Create a block table, e.g. Notes/Cautions/Warnings #}
+<ClarifyingInfo infoType="{{blockType}}" isNumbered="false" itemId="">
+	{% for line in blockLines %}
+	<InfoText>
+			<para><Text>{{line}}</Text></para>
+	</InfoText>
+	{% endfor %}
+</ClarifyingInfo>

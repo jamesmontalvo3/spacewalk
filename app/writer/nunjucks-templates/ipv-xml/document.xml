@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<?xml-stylesheet type="text/css" href="checklist.css"?>
+<ChecklistProcedure xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" maxItemId="165" maxStepId="0" primaryLang="en" xsi:noNamespaceSchemaLocation="checklist.xsd"> <SchemaVersion>3.0.3</SchemaVersion>
+{{header}}
+{{content}}
+{{footer}}
+</ChecklistProcedure>

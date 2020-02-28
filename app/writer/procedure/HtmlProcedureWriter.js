@@ -1,10 +1,8 @@
 'use strict';
 
-const path = require('path');
 const fs = require('fs');
-
+const path = require('path');
 const nunjucks = require('../../model/nunjucksEnvironment');
-const consoleHelper = require('../../helpers/consoleHelper');
 const ProcedureWriter = require('./ProcedureWriter');
 
 module.exports = class HtmlProcedureWriter extends ProcedureWriter {
@@ -34,12 +32,6 @@ module.exports = class HtmlProcedureWriter extends ProcedureWriter {
 			footer: this.genFooter(),
 			css: fs.readFileSync(path.join(__dirname, '../../assets/css/static-eva.css')).toString()
 		});
-	}
-
-	writeFile(filepath) {
-		const relativeFilepath = path.relative(process.cwd(), filepath);
-		fs.writeFileSync(filepath, this.wrapDocument());
-		consoleHelper.success(`SUCCESS: ${relativeFilepath} written!`);
 	}
 
 	genHeader(task) {

@@ -9,6 +9,7 @@ const Program = require('./Program');
 const Procedure = require('./Procedure');
 const EvaDocxProcedureWriter = require('../writer/procedure/EvaDocxProcedureWriter');
 const SodfDocxProcedureWriter = require('../writer/procedure/SodfDocxProcedureWriter');
+const IpvXmlProcedureWriter = require('../writer/procedure/IpvXmlProcedureWriter');
 const EvaHtmlProcedureWriter = require('../writer/procedure/EvaHtmlProcedureWriter');
 
 const Server = require('../web/Server');
@@ -93,7 +94,8 @@ module.exports = class CommanderProgram extends Program {
 		this.composeOutputTypes = [
 			{ option: 'eva-docx', desc: 'Generate EVA .docx file', prop: 'evaDocx' },
 			{ option: 'html', desc: 'Generate HTML file', prop: 'html' },
-			{ option: 'sodf', desc: 'Generate SODF style procedure', prop: 'sodf' }
+			{ option: 'sodf-docx', desc: 'Generate SODF-like .docx file', prop: 'sodfDocx' },
+			{ option: 'ipv-xml', desc: 'Generate IPV compatible XML output', prop: 'ipvXml' }
 		];
 
 	}
@@ -222,7 +224,6 @@ module.exports = class CommanderProgram extends Program {
 		}
 
 		if (this.evaDocx) {
-			console.log('Creating EVA format');
 			const eva = new EvaDocxProcedureWriter(this, procedure);
 
 			eva.renderIntro(() => {
@@ -234,8 +235,12 @@ module.exports = class CommanderProgram extends Program {
 			});
 		}
 
-		if (this.sodf) {
-			this.renderBasicFormat(procedure, SodfDocxProcedureWriter, 'SODF', 'sodf.docx');
+		if (this.sodfDocx) {
+			this.renderBasicFormat(procedure, SodfDocxProcedureWriter, 'SODF DOCX', 'sodf.docx');
+		}
+
+		if (this.ipvXml) {
+			this.renderBasicFormat(procedure, IpvXmlProcedureWriter, 'IPV XML', 'xml');
 		}
 
 		if (this.html) {
@@ -249,10 +254,21 @@ module.exports = class CommanderProgram extends Program {
 		const writer = new WriterClass(this, procedure);
 		writer.renderIntro();
 		writer.renderTasks();
-		writer.writeFile(path.join(
-			this.outputPath,
-			`${procedure.filename}.${extension}`
-		));
+
+		let writeFileLocation = '';
+		if (formatName === 'IPV XML') {
+			writeFileLocation = path.join(
+				this.outputPath,
+				[procedure.number, procedure.uniqueId].join('_'),
+				`${procedure.filename}.${extension}`
+			);
+		} else {
+			writeFileLocation = path.join(
+				this.outputPath,
+				`${procedure.filename}.${extension}`
+			);
+		}
+		writer.writeFile(writeFileLocation);
 	}
 
 	serveMaestroWeb(projectPath, options) {

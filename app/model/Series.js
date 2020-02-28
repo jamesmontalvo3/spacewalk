@@ -212,23 +212,23 @@ module.exports = class Series {
 	// NOTE: step number and step index are not directly related. Steps can contain only non-
 	// incrementing content like images and NCWs. These do not impact step numbers, but they do
 	// count towards indexing.
-	getSeriesStepNumber(step) {
+	getSeriesStepNumber(step, numberedProps = undefined) {
 		let stepNum = 1;
 		for (let i = 0; i < this.steps.length; i++) {
 			const s = this.steps[i];
 			if (s === step) {
 				return stepNum;
 			} else {
-				stepNum += s.getNumberingImpact();
+				stepNum += s.getNumberingImpact(numberedProps);
 			}
 		}
 		throw new Error(`Step ${step.uuid} not within Series ${this.uuid}`);
 	}
 
-	getTotalSteps() {
+	getTotalSteps(numberedProps = undefined) {
 		let totalSteps = 0;
 		for (const step of this.steps) {
-			totalSteps += step.getNumberingImpact();
+			totalSteps += step.getNumberingImpact(numberedProps);
 		}
 		return totalSteps;
 	}

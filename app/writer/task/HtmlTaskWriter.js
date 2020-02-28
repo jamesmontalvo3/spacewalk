@@ -1,12 +1,9 @@
 'use strict';
 
-const fs = require('fs');
 const path = require('path');
 
 const getImageFileDimensions = require('image-size');
 const nunjucks = require('../../model/nunjucksEnvironment');
-const consoleHelper = require('../../helpers/consoleHelper');
-const envHelper = require('../../helpers/envHelper');
 const TaskWriter = require('./TaskWriter');
 const TextTransform = require('../text-transform/TextTransform');
 
@@ -27,42 +24,22 @@ module.exports = class HtmlTaskWriter extends TaskWriter {
 		for (const imageMeta of images) {
 
 			const imageSrcPath = path.join(imagesPath, imageMeta.path);
-			const imageBuildPath = path.join(buildPath, imageMeta.path);
 			const imageSize = this.scaleImage(
 				getImageFileDimensions(imageSrcPath),
 				imageMeta
 			);
 
-			// copy image from ./images to ./build
-			// Do this asynchronously...no need to wait
-			// Also, super lazy: if the image already exists don't copy it again
-			if (envHelper.isNode && !fs.existsSync(imageBuildPath)) {
-				fs.copyFile(imageSrcPath, imageBuildPath, (err) => {
-					if (err) {
-						// for now don't throw errors on this. Allow build to finish
-						consoleHelper.warn(err);
-					}
-					consoleHelper.success(`Image ${imageMeta.path} transferred to build directory`);
-				});
-			}
+			this.moveImages(imageMeta, buildPath, imagesPath);
 
 			const image = nunjucks.render('image.html', {
 				path: path.join('build', imageMeta.path),
-				width: imageSize.width,
-				height: imageSize.height
+				width: imageSize.width, height: imageSize.height
 			});
 
 			imageHtmlArray.push(image);
 		}
 
 		return imageHtmlArray;
-	}
-
-	addParagraph(params = {}) {
-		if (!params.text) {
-			params.text = '';
-		}
-		return `<p>${params.text}</p>`;
 	}
 
 	addBlock(blockType, blockLines) {

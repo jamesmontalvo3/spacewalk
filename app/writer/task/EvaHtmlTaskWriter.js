@@ -17,7 +17,7 @@ module.exports = class EvaHtmlTaskWriter extends HtmlTaskWriter {
 
 		// this.divisionIndex = 0;
 
-		this.tableContents = '';
+		// this.tableContents = '';
 	}
 
 	setTaskTableHeader() {

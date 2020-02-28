@@ -32,12 +32,21 @@ const transforms = [
 	{
 		text: '{{CHECK}}',
 		html: '✓',
+		ipvXml: '<Symbol name="odf-checkmark"/>',
 		docx: '✓',
+		react: null // see ReactTextTransform
+	},
+	{
+		text: '{{VERIFY}}',
+		html: 'verify',
+		ipvXml: 'Verify', // todo figure out how to handle xml verify steps
+		docx: 'verify',
 		react: null // see ReactTextTransform
 	},
 	{
 		text: '{{CHECKBOX}}',
 		html: '☐',
+		ipvXml: '',
 		docx: () => {
 			return new docx.SymbolRun('F071');
 		},
@@ -47,32 +56,80 @@ const transforms = [
 		text: '{{CHECKEDBOX}}',
 		html: '☑',
 		docx: '☑',
+		ipvXml: '',
 		react: null // see ReactTextTransform
 	},
 	{
 		text: '{{LEFT}}',
 		html: '←',
+		ipvXml: '<Symbol name="odf-left-arrow"/>',
 		docx: new docx.SymbolRun('F0DF'),
 		react: null // see ReactTextTransform
 	},
 	{
 		text: '{{UP}}',
 		html: '↑',
+		ipvXml: '<Symbol name="odf-up-arrow"/>',
 		docx: new docx.SymbolRun('F0E1'),
 		react: null // see ReactTextTransform
 	},
 	{
 		text: '{{RIGHT}}',
 		html: '→',
+		ipvXml: '<Symbol name="odf-right-arrow"/>',
 		docx: new docx.SymbolRun('F0E0'),
 		react: null // see ReactTextTransform
 	},
 	{
 		text: '{{DOWN}}',
 		html: '↓',
+		ipvXml: '<Symbol name="odf-down-arrow"/>',
 		docx: new docx.SymbolRun('F0E2'),
 		react: null // see ReactTextTransform
+	},
+	{
+		text: '<',
+		html: '<',
+		ipvXml: '&lt;',
+		docx: '<',
+		react: null // see ReactTextTransform
+	},
+	{
+		text: '&',
+		html: '&',
+		ipvXml: '&am;',
+		docx: '&',
+		react: null // see ReactTextTransform
+	},
+	{
+		text: '{{DISCONNECT}}',
+		html: '',
+		ipvXml: '<Symbol name="odf-disconnect-symbol"/>',
+		docx: '',
+		react: null // see ReactTextTransform
+	},
+	{
+		text: '{{CONNECT}}',
+		html: '',
+		ipvXml: '<Symbol name="odf-connect-symbol"/>',
+		docx: '',
+		react: null // see ReactTextTransform
+	},
+	{
+		text: '{{COUNTERCLOCKWISE}}',
+		html: '',
+		ipvXml: '<Symbol name="odf-counterclockwise-sign"/>',
+		docx: '',
+		react: null // see ReactTextTransform
+	},
+	{
+		text: '{{CLOCKWISE}}',
+		html: '',
+		ipvXml: '<Symbol name="odf-clockwise-sign"/>',
+		docx: '',
+		react: null // see ReactTextTransform
 	}
+
 ];
 
 /**
@@ -210,7 +267,7 @@ function docxStringsToTextRuns(transformArr) {
 module.exports = class TextTransform {
 
 	constructor(format) {
-		const validFormats = ['html', 'docx', 'react'];
+		const validFormats = ['ipvXml', 'html', 'docx', 'react'];
 		if (validFormats.indexOf(format) === -1) {
 			throw new Error('new TextWriter(format) requires format to be in ${validFormats.toString()}');
 		}

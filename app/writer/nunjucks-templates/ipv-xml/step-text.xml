@@ -1,0 +1,5 @@
+<Instruction>
+    <ClearText>
+        <Text>{{stepText}}</Text>
+    </ClearText>
+</Instruction>

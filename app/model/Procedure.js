@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const YAML = require('js-yaml');
 const filenamify = require('filenamify');
+const cloneDeep = require('lodash/cloneDeep');
 
 const ColumnsHandler = require('./ColumnsHandler');
 const TasksHandler = require('./TasksHandler');
@@ -12,6 +13,7 @@ const validateSchema = require('../schema/validateSchema');
 const Duration = require('./Duration');
 const TimeSync = require('./TimeSync');
 const consoleHelper = require('../helpers/consoleHelper');
+const arrayHelper = require('../helpers/arrayHelper');
 const Indexer = require('./Indexer');
 
 /**
@@ -38,9 +40,41 @@ function translatePath(procedureFilePath, taskFileName) {
 	return taskFilePath;
 }
 
+const ipvFieldDefinitions = {
+
+	// Several numbers...if there was just one number then you could call it a generic procedure
+	// number, but with so many it becomes confusing and should be encapsulated as IPV specific
+	number: ['string', 'Procedure number like X.X.XXX'],
+	mNumber: ['string', 'Within IPV known as Unique ID, like M_12345'],
+	procCode: ['string', 'IPV procedure code such as ISS IFM/E58 - ALL/FIN'],
+
+	book: ['string', 'IPV book that procedure is published to'],
+	applicability: ['string', 'Procedure applicability such as E58 - ALL'],
+	ipvVersion: ['string', 'Version of this procedure.'],
+
+	procedureobjective: ['string', 'Procedure objective which describes purpose/assumptions of procedure'],
+
+	crewRequired: ['array', 'How many crew members are required for the procedure'], // IPV way of annotating options; maybe someday Maestro handle
+
+	// These may all get replaced/managed by some higher-level state handler at some point. To
+	// simplify refactoring them, I think it makes sense to move them under an IPV header
+	parts: ['array', 'Parts used in procedure'],
+	materials: ['array', 'Materials used in procedure'],
+	tools: ['array', 'Tools used in procedure'],
+	ipvLocation: ['array', 'Description of location(s) where procedure is performed'],
+	// will have this concept, but not yet. So encapsulate in ipvFields. Sometime sooner than having
+	// options there may be added a top-level Duration object, like `new Duration({hours: 6,
+	// minutes: 30})` to say that EVAs should be 6:30, and if activities cause deviation from this
+	// time then a warning should be given.
+	ipvDuration: ['array', 'Description of how long procedure will take to perform'],
+
+	referencedProcedures: ['array', 'IPV procedures referenced in this procedure']
+};
+
 module.exports = class Procedure {
 
 	constructor(options = {}) {
+
 		this.name = '';
 		this.filename = '';
 		this.actors = [];
@@ -51,16 +85,27 @@ module.exports = class Procedure {
 	}
 
 	getOnlyProcedureDefinition() {
-		return {
+		const def = {
 			// eslint-disable-next-line camelcase
 			procedure_name: this.name,
 			columns: this.ColumnsHandler.getDefinition(),
 			tasks: this.TasksHandler.getRequirementsDefinitions()
 		};
+
+		if (this.ipvFields) {
+			for (const key in this.ipvFields) {
+				if (Array.isArray(this.ipvFields[key])) {
+					def[key] = cloneDeep(this.ipvFields[key]); // creates shallow clone of array
+				} else {
+					def[key] = this.ipvFields[key]; // assume scalar (currently no objects)
+				}
+			}
+		}
+
+		return def;
 	}
 
 	getDefinition() {
-
 		return {
 			procedureDefinition: this.getOnlyProcedureDefinition(),
 			taskDefinitions: this.TasksHandler.getTaskDefinitions()
@@ -273,6 +318,9 @@ module.exports = class Procedure {
 
 		// Save the procedure Name
 		this.setName(procDef.procedure_name);
+		this.number = procDef.procedure_number;
+
+		this.handleIpvFields(procDef.ipvFields);
 
 		if (procDef.columns) {
 			this.ColumnsHandler.updateColumns(procDef.columns);
@@ -284,6 +332,26 @@ module.exports = class Procedure {
 		this.tasks = this.TasksHandler.tasks;
 
 		return null;
+	}
+
+	handleIpvFields(ipvFields) {
+		if (!ipvFields) {
+			delete this.ipvFields; // in case it previously existed and was removed in editor UI
+			return;
+		}
+
+		this.ipvFields = {};
+		for (const key in ipvFieldDefinitions) {
+			const type = ipvFieldDefinitions[key][0];
+			// const description = ipvFieldDefinitions[key][1];
+			if (type === 'array') {
+				this.ipvFields[key] = arrayHelper.parseArray(ipvFields[key] || []);
+			} else if (type === 'string') {
+				this.ipvFields[key] = ipvFields[key] || '';
+			} else {
+				throw new Error('IPV fields only currently supports string or array');
+			}
+		}
 	}
 
 	loadTaskDefinitionsFromFiles() {
