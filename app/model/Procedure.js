@@ -44,15 +44,18 @@ const ipvFieldDefinitions = {
 
 	// Several numbers...if there was just one number then you could call it a generic procedure
 	// number, but with so many it becomes confusing and should be encapsulated as IPV specific
-	number: ['string', 'Procedure number like X.X.XXX'],
+	procNumber: ['string', 'Procedure number like X.X.XXX'],
 	mNumber: ['string', 'Within IPV known as Unique ID, like M_12345'],
 	procCode: ['string', 'IPV procedure code such as ISS IFM/E58 - ALL/FIN'],
+	procType: ['string', 'IPV procedure type such as Nominal'],
+	status: ['string', 'IPV procedure status such as FIN'],
+	date: ['string', 'Publish date formated for IPV as DD MMM YY'],
 
 	book: ['string', 'IPV book that procedure is published to'],
 	applicability: ['string', 'Procedure applicability such as E58 - ALL'],
 	ipvVersion: ['string', 'Version of this procedure.'],
 
-	procedureobjective: ['string', 'Procedure objective which describes purpose/assumptions of procedure'],
+	objective: ['string', 'Procedure objective which describes purpose/assumptions of procedure'],
 
 	crewRequired: ['array', 'How many crew members are required for the procedure'], // IPV way of annotating options; maybe someday Maestro handle
 
