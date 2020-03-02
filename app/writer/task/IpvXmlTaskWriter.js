@@ -271,7 +271,7 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 	addTitleText(title, duration, stepModel) {
 		const subtaskTitle = nunjucks.render('ipv-xml/subtask-title.xml', {
 			title: this.textTransform.transform(title.toUpperCase().trim()).join(''),
-			stepNumber: this.formatStepNumber(stepModel) // .getActivityStepNumber(['title', 'text'])
+			stepNumber: this.formatStepNumber(stepModel)
 		});
 
 		return subtaskTitle;

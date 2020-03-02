@@ -4,6 +4,7 @@
 'use strict';
 
 const expect = require('chai').expect;
+const assert = require('chai').assert; // changing to assert
 const docx = require('docx');
 const TextTransform = require('./TextTransform.js');
 
@@ -146,5 +147,66 @@ describe('TextTransform', function() {
 				})
 			]);
 		});
+
+		const templateCalls = [
+			{
+				template: 'VERIFY',
+				input: 'This is {{VERIFY | a template | call }} right here',
+				expected: 'This is ✓ a templatecall right here'
+			},
+			{
+				template: 'VERIFY',
+				input: 'This is {{VERIFY    |    a template    |    call }} right here',
+				expected: 'This is ✓ a templatecall right here'
+			},
+			{
+				template: 'VERIFY',
+				input: 'This is {{VERIFY|a GREEN }} right here',
+				expected: 'This is ✓ a <span style="font-weight:bold;color:green;">GREEN</span> right here'
+			},
+			{
+				template: 'VERIFY',
+				input: 'This is {{VERIFY|a GREEN}} right here',
+				expected: 'This is ✓ a <span style="font-weight:bold;color:green;">GREEN</span> right here'
+			},
+			{
+				template: 'VERIFY',
+				input: 'This is {{VERIFY|a {{DOWN}} }} right here',
+				expected: 'This is ✓ a ↓ right here'
+			},
+			{
+				template: 'VERIFY',
+				input: 'This is {{VERIFY|a {{DOWN}}}} right here',
+				expected: 'This is ✓ a ↓ right here'
+			},
+			{
+				template: 'VERIFY',
+				input: 'This is {{VERIFY|a {{ }}{{ {{{{{{}}}}}}}} { }{} {{}} }} right here',
+				expected: 'This is ✓ a {{ }}{{ {{{{{{}}}}}}}} { }{} {{}} right here'
+			}
+
+			// FIXME neither of these work yet, since you can't have templates with parameters as
+			// arguments to another template, since the first one splits on all pipes (|)
+			// {
+			// template: 'VERIFY',
+			// input: 'This is {{VERIFY|{{FAKE1|{{FAKE1|{{FAKE1|{{CHECKEDBOX}}}}}}}}}} right here',
+			// expected: 'This is ✓ ✓ ✓ ✓ ☑ right here'
+			// },
+			// {
+			// template: 'VERIFY',
+			// input: 'This is {{VERIFY|{{VERIFY|{{VERIFY|{{CHECKEDBOX}}}}}} }} right here',
+			// expected: 'This is ✓ ✓ ✓ ☑ right here'
+			// }
+		];
+
+		let i = 0;
+		for (const testCase of templateCalls) {
+			it(`should properly handle ${testCase.template} template test ${i}`, function() {
+				const xformed = tx.transform(testCase.input);
+				assert.isArray(xformed);
+				assert.strictEqual(xformed.join(''), testCase.expected);
+			});
+			i++;
+		}
 	});
 });

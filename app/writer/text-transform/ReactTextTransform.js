@@ -15,6 +15,21 @@ const reactTransforms = {
 	'{{DOWN}}': (<React.Fragment key={uuidv4()}>↓</React.Fragment>)
 };
 
+const reactTemplateTransforms = {
+	WIKI: (...args) => {
+		const goToWiki = () => {
+			const { shell } = require('electron');
+			shell.openExternal(`https://wiki.jsc.nasa.gov/iss/index.php/${args[0]}`);
+		};
+
+		return [
+			<a key={args.join('-')} onClick={goToWiki} href='#'>
+				{args[1] || args[0]}
+			</a>
+		];
+	}
+};
+
 module.exports = class ReactTextTransform {
 
 	/**
@@ -66,6 +81,12 @@ module.exports = class ReactTextTransform {
 				if (reactTransforms[xform.text]) {
 					xform.react = reactTransforms[xform.text];
 				}
+			}
+		}
+
+		for (const xform of baseTransforms) {
+			if (xform.template && reactTemplateTransforms[xform.template.name]) {
+				xform.react = reactTemplateTransforms[xform.template.name];
 			}
 		}
 
