@@ -243,7 +243,7 @@ function replaceTemplate(subject, xform, textTransformer) { // specificTransform
 	const { name, transformArgs, defaultTransformFn, trimArgs } = xform.template;
 	const specificTransformFn = xform[textTransformer.format];
 
-	// FIXME: are template names required to be alphanumeric+underscores ???
+	// todo: determine if template names should allow more than alphanumeric+underscores
 	if (!(/[a-zA-Z_]+/g).test(name)) {
 		throw new Error('Find statement does not match regular expression: /[a-zA-Z_]+/');
 	}
@@ -321,7 +321,7 @@ function splitStringAndTransform(subject, xform, textTransformer) {
 		const result = {
 			prefix: subject.substring(0, searchStart),
 
-			// FIXME: if no textTransformer.format found, don't transform for this type. Instead
+			// todo: if no textTransformer.format found, don't transform for this type. Instead
 			// just return something like { prefix: 'whole untransformed string, transformed: '',
 			// suffix: '' }. Perhaps also come up with a way to have a default transform, or a
 			// hierarchy (one transform falls back on another)
