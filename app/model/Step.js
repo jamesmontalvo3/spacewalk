@@ -85,7 +85,6 @@ module.exports = class Step {
 	}
 
 	trigger() {
-		console.log();
 		subscriptionHelper.run(this.subscriberFns.trigger, this);
 	}
 
