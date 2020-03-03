@@ -9,7 +9,6 @@ class DivisionComponent extends React.Component {
 	constructor(props) {
 		super(props);
 		const activity = stateHandler.state.procedure.getTaskByUuid(this.props.activityUuid);
-		// console.log('constructing DivisionComponent');
 
 		this.taskWriter = new ReactTaskWriter(
 			activity,
@@ -17,10 +16,9 @@ class DivisionComponent extends React.Component {
 		);
 
 		this.unsubscribeFns = {
-			setState: null
+			setState: null,
+			trigger: null
 		};
-
-		// }
 
 		// componentDidMount() {
 		const division = stateHandler.state.procedure
@@ -40,7 +38,10 @@ class DivisionComponent extends React.Component {
 
 	componentWillUnmount() {
 		for (const modelMethod in this.unsubscribeFns) {
-			this.unsubscribeFns[modelMethod](); // run each unsubscribe function
+			const unsubscribe = this.unsubscribeFns[modelMethod];
+			if (unsubscribe) {
+				unsubscribe(); // run each unsubscribe function
+			}
 		}
 	}
 

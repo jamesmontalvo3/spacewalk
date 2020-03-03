@@ -212,33 +212,22 @@ const DivisionMetaForm = ({ division, editorOptions }) => {
 	};
 
 	const onSubmit = (values) => {
-		// console.log('onSubmit values', values);
-
 		const change = calculateChange(values);
-		// console.log('CHANGES:', change);
-		const { deleting, keeping, creating } = change;
+		const { deleting, creating } = change;
 
 		for (const key of deleting) {
 			if (division.subscenes[key].steps.length > 0) {
 				// This should never happen since validation should prevent it
 				throw new Error(`series ${key} has steps. It cannot be deleted.`);
 			}
-			// else { console.log(`series ${key} can be deleted`); }
-		}
-
-		const newDef = { simo: {} };
-		for (const key of keeping) {
-			// console.log(`series ${key} is being kept. If it has steps, preserve them`);
-			newDef.simo[key] = division.subscenes[key].getDefinition();
+			division.deleteSeries(key, false);
 		}
 
 		for (const key of creating) {
-			// console.log(`series ${key} is being created with no content.`);
-			newDef.simo[key] = []; // empty list of steps
+			division.addSeries(key, false);
 		}
 
-		division.setState(newDef);
-
+		division.trigger(); // trigger subscriptions
 	};
 
 	return (

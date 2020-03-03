@@ -136,7 +136,10 @@ module.exports = class ConcurrentStep {
 		this.subscenes = {};
 		this.uuid = uuidv4();
 		this.subscriberFns = {
-			setState: []
+			setState: [],
+			addSeries: [],
+			deleteSeries: [],
+			trigger: []
 		};
 		this.setContext(parent);
 		this.setState(definition);
@@ -232,16 +235,42 @@ module.exports = class ConcurrentStep {
 	}
 
 	/**
-	 * FIXME: Handle with setState?
+	 * Consider: Handle with setState? But that wipes out existing steps and gives them new UUIDs,
+	 * which is/was the potential cause of #130.
+	 *
 	 * @param {string} roleOrActorOrJoint - The role, actor, or joint (aRole + anActor + another)
 	 *                                      the Series belongs to. From this, the key in the
 	 *                                      this.subscenes object can be determined.
+	 * @param {boolean} notify            - Whether or not to inform subscription manager
 	 * @return {string}                   - The key of the new Series in this.subscenes
 	 */
-	addSeries(roleOrActorOrJoint) {
+	addSeries(roleOrActorOrJoint, notify = true) {
 		const actorInfo = getActorInfo(roleOrActorOrJoint, this.taskRoles);
 		this.subscenes[actorInfo.id] = new Series(actorInfo.idOrIds, this);
+		if (notify) {
+			subscriptionHelper.run(this.subscriberFns.addSeries, this);
+		}
 		return actorInfo.id;
+	}
+
+	/**
+	 * Consider: Handle with setState? But that wipes out existing steps and gives them new UUIDs,
+	 * which is/was the potential cause of #130.
+	 *
+	 * @param {string} key                - The role, actor, or joint (aRole + anActor + another)
+	 *                                      the Series belongs to. From this, the key in the
+	 *                                      this.subscenes object can be determined.
+	 * @param {boolean} notify            - Whether or not to inform subscription manager
+	 */
+	deleteSeries(key, notify = true) {
+		delete this.subscenes[key];
+		if (notify) {
+			subscriptionHelper.run(this.subscriberFns.deleteSeries, this);
+		}
+	}
+
+	trigger() {
+		subscriptionHelper.run(this.subscriberFns.trigger, this);
 	}
 
 	getSeriesOrder() {
