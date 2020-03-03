@@ -139,8 +139,20 @@ module.exports = class ReactTaskWriter extends TaskWriter {
 				imageMeta
 			);
 
+			let href, onClick;
+			if (window.isElectron) {
+				href = '#';
+				onClick = () => {
+					const { shell } = require('electron');
+					shell.openExternal(htmlImagePath);
+				};
+			} else {
+				href = htmlImagePath;
+				onClick = null; // FIXME: web UI currently not functional, this hasn't been tested
+			}
+
 			const image = (
-				<a href={htmlImagePath} key={uuidv4()}>
+				<a href={href} key={uuidv4()} onClick={onClick}>
 					<img
 						className="img-fluid"
 						src={htmlImagePath}
