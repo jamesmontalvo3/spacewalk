@@ -273,10 +273,21 @@ module.exports = class ConcurrentStep {
 		subscriptionHelper.run(this.subscriberFns.trigger, this);
 	}
 
-	getSeriesOrder() {
+	/**
+	 * FIXME: comment and/or break this function up. It's hard to follow.
+	 * @param {boolean} includeEmpty - Whether or not to include empty Series (without steps)
+	 *                                 This _may_ be a misnomer, since really this may be forcing
+	 *                                 inclusion of undefined Series that could be defined and fit
+	 *                                 into the normal Division structure.
+	 * @return {Array} array of series keys, in order
+	 */
+	getSeriesOrder(includeEmpty = false) {
 		const activityColumnKeys = this.parent.getColumns();
 		const seriesKeys = Object.keys(this.subscenes);
+
+		// like { EV1: "EV1", EV2: "EV2 + EV3", EV3: "EV2 + EV3" }
 		const actorKeyToSeriesKey = {};
+
 		for (const key of seriesKeys) {
 			if (activityColumnKeys.indexOf(key) > -1) {
 				actorKeyToSeriesKey[key] = key;
@@ -291,20 +302,21 @@ module.exports = class ConcurrentStep {
 			// that but the maestro yaml spec will.
 		}
 
-		const completed = [];
 		const order = [];
 		for (const key of activityColumnKeys) {
-			let checkKey = key;
-			if (!this.subscenes[checkKey]) {
-				const jointActorKey = actorKeyToSeriesKey[key];
-				if (completed.indexOf(jointActorKey) > -1) {
-					continue; // already did this one, move on
+			const checkJointKey = actorKeyToSeriesKey[key];
+
+			if (this.subscenes[key]) {
+				order.push(key);
+			} else if (checkJointKey && checkJointKey.indexOf('+') !== -1) {
+				if (order.indexOf(checkJointKey) === -1) {
+					order.push(checkJointKey); // Only push joint key once
 				}
-				completed.push(jointActorKey);
-				checkKey = jointActorKey;
+			} else if (includeEmpty) {
+				order.push(key);
 			}
-			order.push(checkKey);
 		}
+
 		return order;
 	}
 

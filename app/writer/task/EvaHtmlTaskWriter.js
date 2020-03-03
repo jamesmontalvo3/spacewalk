@@ -55,21 +55,12 @@ module.exports = class EvaHtmlTaskWriter extends HtmlTaskWriter {
 		);
 
 		const columnSettings = [];
-		for (let c = 0; c < this.numCols; c++) {
-			if (!columns[c]) {
-				columnSettings.push({
-					content: '',
-					colspan: 1
-				});
-				continue;
-			}
+
+		for (const c in columns) {
 			columnSettings.push({
 				content: columns[c].children.join(''),
 				colspan: columns[c].colspan
 			});
-			if (columns[c].colspan > 1) {
-				c += columns[c].colspan - 1;
-			}
 		}
 
 		const tableDivision = nunjucks.render(

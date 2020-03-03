@@ -60,31 +60,10 @@ module.exports = class ReactTaskWriter extends TaskWriter {
 			division, this, true
 		);
 
-		for (let c = 0; c < this.numCols; c++) {
-			if (!columns[c]) {
-				// FIXME need a better way to handle this
-				const columnKey = this.task.getColumns()[c];
-
-				// Technically division.addSeries() generates the actual seriesKey (here, columnKey)
-				// since what is passed to addSeries() could be a mix of actors and/or roles. The
-				// returned key is standardized. Here that the input columnKey and realColumnKey
-				// should be the same since we're generating a series specifically for this column.
-				const realColumnKey = division.addSeries(columnKey);
-
-				// FIXME this is confusing af
-				columns[c] = {
-					children: [], // FIXME remove these if the stuff below works...
-					content: [],
-					colspan: 1,
-
-					series: division.subscenes[realColumnKey],
-					columnKeys: [columnKey] // ['NONE'] // FIXME
-				};
-				columns[c].stateColumnKey = columns[c].columnKeys[0];
-				continue;
-			}
-			if (columns[c].colspan > 1) {
-				c += columns[c].colspan - 1;
+		for (const colId in columns) {
+			if (!columns[colId].series) {
+				const seriesKey = division.addSeries(columns[colId].stateColumnKey);
+				columns[colId].series = division.subscenes[seriesKey];
 			}
 		}
 

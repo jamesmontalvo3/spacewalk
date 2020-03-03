@@ -75,26 +75,15 @@ module.exports = class EvaDocxTaskWriter extends DocxTaskWriter {
 		}
 
 		const rowChildren = [];
-		for (let c = 0; c < this.numCols; c++) {
-			if (!columns[c]) {
-				rowChildren.push(new docx.TableCell({
-					children: [],
-					columnSpan: 1,
-					verticalAlign: docx.VerticalAlign.TOP,
-					borders: borders
-				}));
-				continue;
-			}
+		for (const c in columns) {
 			rowChildren.push(new docx.TableCell({
 				children: columns[c].children,
 				columnSpan: columns[c].colspan,
 				verticalAlign: docx.VerticalAlign.TOP,
 				borders: borders
 			}));
-			if (columns[c].colspan > 1) {
-				c += columns[c].colspan - 1;
-			}
 		}
+
 		const tableRow = new docx.TableRow({
 			children: rowChildren,
 			cantSplit: true
