@@ -144,7 +144,7 @@ class SeriesComponent extends React.Component {
 		// attached to the bottom of the SeriesComponent, there will not be a stepIndex. Instead it
 		// will explicitly define the stepIndex as false. Set it to the end of the Series.
 		if (to.stepIndex === false) {
-			to.stepIndex = this.props.seriesState.steps.length;
+			to.stepIndex = destinationSeries.steps.length;
 		}
 
 		this.props.seriesState.transferStep(from.stepIndex, destinationSeries, to.stepIndex);
