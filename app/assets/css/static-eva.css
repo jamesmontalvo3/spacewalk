@@ -98,6 +98,11 @@ li p {
 	color: black;
 }
 
+.ncw-comment .ncw-head {
+	background-color: green;
+	color: white;
+}
+
 .ncw-body {
 	padding: 5px;
 }

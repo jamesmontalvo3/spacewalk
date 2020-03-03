@@ -73,14 +73,14 @@ module.exports = class DocxTaskWriter extends TaskWriter {
 		const numbering = this.taskNumbering;
 
 		const fillColors = {
-			comment: '00FF00',
+			comment: '008000',
 			note: 'FFFFFF',
 			caution: 'FFFF00',
 			warning: 'FF0000'
 		};
 
 		const textColors = {
-			comment: '000000',
+			comment: 'FFFFFF',
 			note: '000000',
 			caution: '000000',
 			warning: 'FFFFFF'
