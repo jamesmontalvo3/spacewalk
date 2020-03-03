@@ -259,7 +259,7 @@ module.exports = class CommanderProgram extends Program {
 		if (formatName === 'IPV XML') {
 			writeFileLocation = path.join(
 				this.outputPath,
-				[procedure.number, procedure.uniqueId].join('_'),
+				[procedure.ipvFields.procNumber, procedure.ipvFields.mNumber].join('_'),
 				`${procedure.filename}.${extension}`
 			);
 		} else {

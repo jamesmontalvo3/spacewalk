@@ -8,7 +8,7 @@
     <ProcCode>{{procCode}}</ProcCode>
 </MetaData>
 <ProcTitle>
-    <ProcNumber>{{number|default("X.X.XXX")}}</ProcNumber>
+    <ProcNumber>{{procNumber|default("X.X.XXX")}}</ProcNumber>
     <Text>{{name}}</Text>
 </ProcTitle>
 <TimeRequirement>
@@ -43,7 +43,7 @@
     <ListTitle>
         <Text>CREW:</Text>
     </ListTitle>
-    {% for line in crew %}
+    {% for line in crewRequired %}
     <Para>
         <Text>{{line}}</Text>
     </Para>
