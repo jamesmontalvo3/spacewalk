@@ -33,7 +33,6 @@ module.exports = class IpvXmlProcedureWriter extends ProcedureWriter {
 		const vars = {};
 		for (const key in this.procedure.ipvFields) {
 			vars[key] = this.procedure.ipvFields[key];
-			console.log(vars[key]);
 		}
 		vars.name = this.procedure.name.replace('&', '&amp;');
 		vars.date = this.gitDateToIpvDate(this.program.getGitDate());
