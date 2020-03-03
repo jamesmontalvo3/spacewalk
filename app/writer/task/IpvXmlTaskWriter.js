@@ -12,7 +12,7 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 
 	constructor(task, procedureWriter) {
 		super(task, procedureWriter);
-		this.textTransform = new TextTransform('ipvXml');
+		this.textTransform = new TextTransform('ipvXml', task);
 		// this.taskNumbering = null;
 		// this.getNumbering();
 	}

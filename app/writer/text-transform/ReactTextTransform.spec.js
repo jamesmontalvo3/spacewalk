@@ -10,13 +10,15 @@ const assert = require('chai').assert;
 const TextTransform = require('./TextTransform');
 const ReactTextTransform = require('./ReactTextTransform');
 
+const testTaskGenerator = require('../../../test/generators/testTaskGenerator');
+
 describe('ReactTextTransform', function() {
 
 	const base = new ReactTextTransform([], [], {});
 
 	describe('constructor', function() {
 
-		const tt = new TextTransform('react');
+		const tt = new TextTransform('react', testTaskGenerator());
 
 		const tests = [
 			{ input: '{{CHECK}}', expected: (<React.Fragment key={'a'}>✓</React.Fragment>) },

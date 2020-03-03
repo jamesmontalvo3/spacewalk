@@ -11,7 +11,7 @@ module.exports = class HtmlTaskWriter extends TaskWriter {
 
 	constructor(task, procedureWriter) {
 		super(task, procedureWriter);
-		this.textTransform = new TextTransform('html');
+		this.textTransform = new TextTransform('html', task);
 		// this.taskNumbering = null;
 		// this.getNumbering();
 	}

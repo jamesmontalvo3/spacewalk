@@ -21,7 +21,7 @@ module.exports = class DocxTaskWriter extends TaskWriter {
 
 		this.taskNumbering = null;
 		this.getNumbering();
-		this.textTransform = new TextTransform('docx');
+		this.textTransform = new TextTransform('docx', task);
 
 		this.checkboxNumbering = {
 			numbering: null,
