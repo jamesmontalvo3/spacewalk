@@ -106,7 +106,10 @@ module.exports = class Series {
 		if (targetStep) {
 			this.indexer.insert(stepModel.uuid, 'before', targetStep.uuid);
 		} else {
-			const priorStep = this.getStepBefore();
+			const priorStep = insertIndex > 0 && this.steps[this.steps.length - 1] ?
+				this.steps[this.steps.length - 1] : // use last step in series
+				this.getStepBefore(); // find a step before the series
+
 			if (priorStep) {
 				this.indexer.insert(stepModel.uuid, 'after', priorStep.uuid);
 			} else {
@@ -129,8 +132,9 @@ module.exports = class Series {
 		}
 	}
 
+	// Issue #142: insertStep is "insert step before index", but transferStep seems to be
+	// "insert step after index". Confusing.
 	transferStep(removalIndex, destinationSeries, insertIndex) {
-		// console.log('Series.transferStep');
 		const [stepToTransfer] = this.steps.splice(removalIndex, 1);
 
 		// transferring step within this Series
@@ -140,18 +144,13 @@ module.exports = class Series {
 				insertIndex :
 				insertIndex + 1;
 
-			this.steps.splice(realInsertIndex, 0, stepToTransfer);
-
+			destinationSeries.insertStep(realInsertIndex, stepToTransfer, false); // no notify
 		} else {
 			console.log('transferring step from one series to another');
-
-			// step was previously in another series which had different actors. Reset.
-			stepToTransfer.setActors(destinationSeries.seriesActors);
 
 			// transferring step from this Series to another Series
 			// NOTE: indexer updates handled by insertStep()
 			destinationSeries.insertStep(insertIndex + 1, stepToTransfer, false); // no notify
-			stepToTransfer.setContext(destinationSeries);
 		}
 
 		// FIXME is this right name? or should this be registered as an deleteStep? Or both?
