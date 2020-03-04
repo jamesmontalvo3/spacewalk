@@ -147,8 +147,7 @@ module.exports = class Step {
 				);
 			}
 			const content = stepYaml.text ? stepYaml.text : stepYaml.step;
-			const preStep = arrayHelper.parseArray(content);
-			return preStep.map((text) => this.parseStepText(text));
+			return arrayHelper.parseArray(content);
 		}
 		return [];
 	}
@@ -181,7 +180,7 @@ module.exports = class Step {
 
 		// Check if the step is a simple string
 		if (typeof definition === 'string') {
-			this.props.text = [this.parseStepText(definition)];
+			this.props.text = [definition];
 			return;
 		}
 
@@ -325,17 +324,6 @@ module.exports = class Step {
 		}
 
 		return title;
-	}
-
-	// FIXME REMOVE THIS
-	/**
-	 * Return formatted step text
-	 *
-	 * @param   {string} stepText
-	 * @return  {Array} array of substeps
-	 */
-	parseStepText(stepText) {
-		return stepText;
 	}
 
 	// this is a shim because Step now requires reference to the Series it resides within, and thus
