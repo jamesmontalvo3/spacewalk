@@ -125,7 +125,7 @@ describe('ConcurrentStep constructor - Positive Testing', function() {
                 crewA: "Go Outside"
                 crewB:
                     - step: "Stay Inside"
-                    - step: "Watch {{role:crewA}}"
+                    - step: "Watch EV1"
         `;
 		var fakeYamlObj = YAML.safeLoad(yamlString);
 

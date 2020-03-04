@@ -50,10 +50,6 @@ module.exports = class Step {
 	setContext(parent, definition) {
 		this.parent = parent;
 
-		// this needs to be re-run if a step is moved between _activities_
-		// sets this.context.taskRoles & this.context.taskRolesMap
-		this.mapTaskRolesToActor(parent.taskRoles);
-
 		// this needs to be re-run if a step is moved between actors/roles/columns
 		this.setActors(
 			parent.seriesActors,
@@ -151,8 +147,7 @@ module.exports = class Step {
 				);
 			}
 			const content = stepYaml.text ? stepYaml.text : stepYaml.step;
-			const preStep = arrayHelper.parseArray(content);
-			return preStep.map((text) => this.parseStepText(text));
+			return arrayHelper.parseArray(content);
 		}
 		return [];
 	}
@@ -185,7 +180,7 @@ module.exports = class Step {
 
 		// Check if the step is a simple string
 		if (typeof definition === 'string') {
-			this.props.text = [this.parseStepText(definition)];
+			this.props.text = [definition];
 			return;
 		}
 
@@ -260,46 +255,10 @@ module.exports = class Step {
 
 	parseBlock(textOrArray) {
 		if (textOrArray) {
-			return arrayHelper.parseArray(textOrArray).map(this.replaceTaskRoles.bind(this));
+			return arrayHelper.parseArray(textOrArray);
 		} else {
 			return [];
 		}
-	}
-
-	/**
-	 * Create a dict taskRolesMap to be able to determine role-->actor. Then
-	 * create function replaceTaskRoles(text) to allow changing text like
-	 * "{{role:crewB}}" into "EV1" if taskRolesMap['crewB'] === 'EV1'
-	 *
-	 * FIXME this seems excessive to do on every step
-	 *
-	 * @param  {Object} taskRoles  -  object of TaskRole objects. Example:
-	 *                    taskRoles === {
-	 *                      crewA: TaskRole{
-	 *                        name: 'crewA',
-	 *                        description: 'Crewmember exiting A/L first',
-	 *                        actor: 'EV1'
-	 *                      },
-	 *                      crewB: TaskRole{
-	 *                        name: 'crewB',
-	 *                        description: 'Crewmember exiting A/L second',
-	 *                        actor: 'EV2'
-	 *                      }
-	 *                    }
-	 */
-	mapTaskRolesToActor(taskRoles) {
-		this.context.taskRoles = taskRoles;
-		this.context.taskRolesMap = {};
-		for (const role in taskRoles) {
-			this.context.taskRolesMap[role] = taskRoles[role].actor;
-		}
-	}
-
-	replaceTaskRoles(text) {
-		for (const role in this.context.taskRolesMap) {
-			text = text.replace(`{{role:${role}}}`, this.context.taskRolesMap[role]);
-		}
-		return text;
 	}
 
 	// fixme good docs
@@ -336,11 +295,10 @@ module.exports = class Step {
 	/**
 	 * Return formatted title
 	 *
-	 * @param   {*} titleYaml YAML for the title
+	 * @param   {string} title YAML for the title
 	 * @return  {*} array of substeps
      */
-	parseTitle(titleYaml) {
-		const title = this.replaceTaskRoles(titleYaml);
+	parseTitle(title) {
 
 		const titleWarnings = [];
 
@@ -366,17 +324,6 @@ module.exports = class Step {
 		}
 
 		return title;
-	}
-
-	/**
-	 * Return formatted step text
-	 *
-	 * @param   {*} stepTextYaml YAML for the step text
-	 * @return  {Array} array of substeps
-	 */
-	parseStepText(stepTextYaml) {
-		// return stepTextYaml;
-		return this.replaceTaskRoles(stepTextYaml);
 	}
 
 	// this is a shim because Step now requires reference to the Series it resides within, and thus

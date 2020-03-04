@@ -8,26 +8,28 @@ const assert = require('chai').assert; // changing to assert
 const docx = require('docx');
 const TextTransform = require('./TextTransform.js');
 
+const testTaskGenerator = require('../../../test/generators/testTaskGenerator');
+
 /**
  * Positive testing for task
  */
 describe('TextTransform', function() {
 	describe('#constructor', () => {
 		it('should set the format', () => {
-			const tx = new TextTransform('docx');
+			const tx = new TextTransform('docx', testTaskGenerator());
 			expect(tx.format).to.equal('docx');
 		});
 
 		it('should error if an invalid format is supplied', () => {
 			const badConstructor = function() {
-				new TextTransform('this-is-an-invalid-format'); // eslint-disable-line no-new
+				new TextTransform('this-is-an-invalid-format', testTaskGenerator()); // eslint-disable-line no-new
 			};
 			expect(badConstructor).to.throw();
 		});
 	});
 
 	describe('#htmlColor', () => {
-		const tx = new TextTransform('html');
+		const tx = new TextTransform('html', testTaskGenerator());
 
 		it('should return the color text in a formatted <span>', () => {
 			expect(tx.htmlColor('GREEN'))
@@ -40,8 +42,8 @@ describe('TextTransform', function() {
 	});
 
 	describe('#transform', () => {
-		const tx = new TextTransform('html');
-		const txDocx = new TextTransform('docx');
+		const tx = new TextTransform('html', testTaskGenerator());
+		const txDocx = new TextTransform('docx', testTaskGenerator());
 
 		it('should convert a single item without added whitespace', () => {
 			const xformed = tx.transform('GREEN');

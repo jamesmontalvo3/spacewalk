@@ -33,21 +33,42 @@ const transforms = [
 		template: {
 			name: 'VERIFY',
 			transformArgs: true,
-			defaultTransformFn: (...args) => {
-				return ['✓ ', ...args]; // glue check onto front of returned array
+			defaultTransformFn: (textTransformer, ...templateArgs) => {
+				return ['✓ ', ...templateArgs]; // glue check onto front of returned array
 			}
 		},
-		ipvXml: (...args) => {
+		ipvXml: (textTransformer, ...templateArgs) => {
 			// FIXME I think ipvXml looks something like this but this was just a guess for now
-			return [`<verify><Symbol name="odf-checkmark"/> ${args.join(' ')}</verify>`];
+			return [`<verify><Symbol name="odf-checkmark"/> ${templateArgs.join(' ')}</verify>`];
 		}
 	},
 	{
 		template: {
 			name: 'WIKI',
 			transformArgs: false,
-			defaultTransformFn: (...args) => {
-				return [args[1] || args[0]]; // most output formats do nothing. requires react.
+			defaultTransformFn: (textTransformer, ...templateArgs) => {
+				// most output formats do nothing. requires react.
+				return [templateArgs[1] || templateArgs[0]];
+			}
+		}
+	},
+	{
+		template: {
+			name: 'ROLE',
+			transformArgs: false,
+			defaultTransformFn: (textTransformer, ...templateArgs) => {
+				const roleName = templateArgs[0];
+				if (templateArgs.length > 1) {
+					console.error('ROLE template should only have one argument: role name');
+				}
+				const task = textTransformer.task;
+				const taskRole = task.rolesDict[roleName];
+				if (!taskRole) {
+					console.error(`Role ${roleName} does not appear to exist in activity ${task.title}`);
+					return [`_invalid role name ${roleName}_`];
+				} else {
+					return [taskRole.actor];
+				}
 			}
 		}
 	},
@@ -284,8 +305,8 @@ function replaceTemplate(subject, xform, textTransformer) { // specificTransform
 	// if a specific function is specified like { html: (args) => {...} } use that, else use
 	// default { template: { defaultTransformFn: (args) => {...} } }
 	const transformed = specificTransformFn ?
-		specificTransformFn(...templateArgs) :
-		defaultTransformFn(...templateArgs);
+		specificTransformFn(textTransformer, ...templateArgs) :
+		defaultTransformFn(textTransformer, ...templateArgs);
 
 	return {
 		prefix: prefix,
@@ -407,7 +428,13 @@ function docxStringsToTextRuns(transformArr) {
 
 module.exports = class TextTransform {
 
-	constructor(format) {
+	constructor(format, task) {
+		this.task = task;
+		if (!this.task.constructor && !this.task.constructor.name &&
+			this.task.constructor.name !== 'Task') {
+			throw new Error('TextTransform.task must be an instance of Task');
+		}
+
 		const validFormats = ['ipvXml', 'html', 'docx', 'react'];
 		if (validFormats.indexOf(format) === -1) {
 			throw new Error(`new TextWriter(format) requires format to be in ${validFormats.toString()}`);
