@@ -1,6 +1,6 @@
 {
   "name": "maestro",
-  "version": "5.0.0-alpha",
+  "version": "5.1.0-alpha",
   "description": "Composing procedures for space operations",
   "main": "index.js",
   "scripts": {
