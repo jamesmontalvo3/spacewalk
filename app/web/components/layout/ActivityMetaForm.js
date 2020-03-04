@@ -123,6 +123,13 @@ const ActivityMetaForm = ({ task }) => {
 
 			task.setState(values);
 
+			// FIXME this is a hack to make sure the Task is updated appropriately. Without this,
+			// when roles are changed, those change the context that in which the task is executed,
+			// and the steps that belong to one role need to be swapped to the other. Forcing a
+			// state update here makes sure those changes appear. But this is ugly. Also there may
+			// be issues with setState firing off multiple subscription notifications.
+			task.setState(task.getTaskDefinition());
+
 			stateHandler.saveChange(
 				stateHandler.state.procedure.TasksHandler.getTaskIndexByUuid(task.uuid)
 			);
