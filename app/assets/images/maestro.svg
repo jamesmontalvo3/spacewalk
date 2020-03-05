@@ -16,7 +16,7 @@
    id="svg8"
    inkscape:version="0.92.1 r15371"
    sodipodi:docname="maestro.svg"
-   inkscape:export-filename="C:\Users\ejmontal\Desktop\maestro.png"
+   inkscape:export-filename="C:\Users\ejmontal\#code\xops\maestro\app\assets\images\maestro.png"
    inkscape:export-xdpi="96"
    inkscape:export-ydpi="96">
   <defs
@@ -28,9 +28,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="256"
-     inkscape:cx="319.53891"
-     inkscape:cy="0.10779384"
+     inkscape:zoom="1.28"
+     inkscape:cx="326.67997"
+     inkscape:cy="322.59794"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -42,14 +42,35 @@
      inkscape:snap-others="true"
      inkscape:snap-center="true"
      inkscape:window-width="1920"
-     inkscape:window-height="1147"
-     inkscape:window-x="1912"
+     inkscape:window-height="1027"
+     inkscape:window-x="-8"
      inkscape:window-y="-8"
      inkscape:window-maximized="1">
     <sodipodi:guide
        position="84.666667,182.54509"
        orientation="1,0"
        id="guide4586"
+       inkscape:locked="true"
+       inkscape:label=""
+       inkscape:color="rgb(0,0,255)" />
+    <sodipodi:guide
+       position="-16.95491,2.6458334"
+       orientation="0,1"
+       id="guide4493"
+       inkscape:locked="true"
+       inkscape:label=""
+       inkscape:color="rgb(0,0,255)" />
+    <sodipodi:guide
+       position="-13.593161,166.6875"
+       orientation="0,1"
+       id="guide4495"
+       inkscape:locked="true"
+       inkscape:label=""
+       inkscape:color="rgb(0,0,255)" />
+    <sodipodi:guide
+       position="-9.9218748,84.666667"
+       orientation="0,1"
+       id="guide4499"
        inkscape:locked="true"
        inkscape:label=""
        inkscape:color="rgb(0,0,255)" />
@@ -62,7 +83,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -71,11 +92,23 @@
      inkscape:groupmode="layer"
      id="layer1"
      transform="translate(0,-127.66665)">
+    <circle
+       style="fill:#ffffff;fill-opacity:1;stroke:#fffff1;stroke-width:1.25310028;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="path4501"
+       cx="84.666664"
+       cy="212.33331"
+       r="68.528923" />
+    <circle
+       style="fill:#ffffff;fill-opacity:1;stroke:#9ffff0;stroke-width:0.75494474;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="path4489"
+       cx="84.666687"
+       cy="212.69499"
+       r="68.888702" />
     <flowRoot
        xml:space="preserve"
        id="flowRoot4570"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:480.00006104px;line-height:1.25;font-family:'Berlin Sans FB Demi';-inkscape-font-specification:'Berlin Sans FB Demi';text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#0b0d36;fill-opacity:1;stroke:none"
-       transform="matrix(0.26458333,0,0,0.26458333,-111.21078,36.521699)"><flowRegion
+       transform="matrix(0.25703666,0,0,0.25703666,-105.62378,41.898497)"><flowRegion
          id="flowRegion4572"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:480.00006104px;font-family:'Berlin Sans FB Demi';-inkscape-font-specification:'Berlin Sans FB Demi';text-align:center;text-anchor:middle;fill:#0b0d36;fill-opacity:1"><rect
            id="rect4574"
@@ -86,16 +119,16 @@
            style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:480.00006104px;font-family:'Berlin Sans FB Demi';-inkscape-font-specification:'Berlin Sans FB Demi';text-align:center;text-anchor:middle;fill:#0b0d36;fill-opacity:1" /></flowRegion><flowPara
          id="flowPara4576"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:480.00006104px;font-family:'Berlin Sans FB Demi';-inkscape-font-specification:'Berlin Sans FB Demi';fill:#0b0d36;fill-opacity:1">M</flowPara></flowRoot>    <path
-       style="fill:#af0100;fill-opacity:1;stroke:none;stroke-width:1.08073306;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="m 84.666667,127.66618 -73.32369,42.33334 v 84.66666 l 73.32369,42.33333 73.323683,-42.33333 v -84.66666 z m 0,16.83205 c 37.463963,1.4e-4 68.101743,30.37065 68.101883,67.83462 -1.4e-4,37.46397 -30.63792,67.83448 -68.101883,67.83462 -37.46397,-1.4e-4 -67.834483,-30.37065 -67.834617,-67.83462 1.34e-4,-37.46397 30.370647,-67.83448 67.834617,-67.83462 z"
+       style="fill:#af0100;fill-opacity:1;stroke:none;stroke-width:1.04990757;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 84.666667,130.44327 -71.232286,41.12588 v 82.25172 l 71.232286,41.12587 71.232293,-41.12587 v -82.25172 z m 0,16.35196 c 36.395383,1.4e-4 66.159303,29.50439 66.159433,65.89978 -1.3e-4,36.39539 -29.76405,65.89965 -66.159433,65.89978 -36.395397,-1.3e-4 -65.899658,-29.50439 -65.899781,-65.89978 1.23e-4,-36.39539 29.504384,-65.89964 65.899781,-65.89978 z"
        id="path4485"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="cccccccccccc" />
     <circle
-       style="fill:none;stroke:#0b0d36;stroke-width:5.29166651;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       style="fill:none;stroke:#0b0d36;stroke-width:5.14073372;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="path4509"
-       cx="84.666679"
-       cy="212.33284"
-       r="63.177067" />
+       cx="84.666687"
+       cy="212.69499"
+       r="61.375076" />
   </g>
 </svg>
