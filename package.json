@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "electron ./app/electron/main.js",
+    "dist": "electron-builder",
     "pre-commit-msg": "node ./test/helpers/preCommitMsg.js",
     "pre-commit-lint-complete": "node ./test/helpers/preCommitMsg.js lint",
     "lint": "eslint . --color",
@@ -19,6 +20,13 @@
     "build:electron": "env BABEL_ENV=build ./node_modules/.bin/webpack --config ./webpack/config-electron.js",
     "build:electron:watch": "env BABEL_ENV=build ./node_modules/.bin/webpack --watch --config webpack/config-electron.js",
     "build:electron:prod": "env BABEL_ENV=build ./node_modules/.bin/webpack -p --config webpack/config-electron.js"
+  },
+  "build": {
+    "appId": "com.space.maestro",
+    "win": {
+      "target": "nsis",
+      "icon": "app/assets/images/favicon.ico"
+    }
   },
   "babel": {
     "env": {
