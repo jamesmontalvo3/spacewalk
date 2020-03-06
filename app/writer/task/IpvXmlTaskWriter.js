@@ -162,9 +162,10 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 	addImages(images) {
 		const imageXmlArray = [];
 		const imagesPath = path.join(this.procedureWriter.program.imagesPath);
-		const ipvXmlFolder = [this.procedure.ipvFields.procNumber, this.procedure.ipvFields.mNumber].join('_');
+		const ipvXmlFolder = [this.procedure.ipvFields.mNumber].join('_');
 		const imagesFolder = [ipvXmlFolder, 'files'].join('_');
 		const ipvXmlFolderBuild = path.join(this.procedureWriter.program.outputPath, ipvXmlFolder);
+		const refDocsFolder = path.join(ipvXmlFolderBuild, ipvXmlFolder);
 		const buildPath = path.join(ipvXmlFolderBuild, imagesFolder);
 
 		// if image folder doesn't exist then make one
@@ -174,6 +175,9 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 		}
 		if (!fs.existsSync(buildPath)) {
 			fs.mkdirSync(buildPath);
+		}
+		if (!fs.existsSync(refDocsFolder)) {
+			fs.mkdirSync(refDocsFolder);
 		}
 
 		for (const imageMeta of images) {
