@@ -73,6 +73,29 @@ const transforms = [
 		}
 	},
 	{
+		template: {
+			name: 'REF',
+			transformArgs: true,
+			defaultTransformFn: (textTransformer, ...templateArgs) => {
+				return ['✓ ', ...templateArgs]; // glue check onto front of returned array
+			}
+		},
+		ipvXml: (textTransformer, ...templateArgs) => {
+			// FIXME need to pass figure number into here
+			return [
+				`
+				<ReferenceInfo>
+					<Text>(</Text>
+					<Hyperlink target="${templateArgs.join(' ')}">
+						<Text>Figure X</Text>
+					</Hyperlink>
+					<Text>)</Text>
+				</ReferenceInfo>
+				`
+			];
+		}
+	},
+	{
 		text: '{{CHECK}}',
 		html: '✓',
 		ipvXml: '<Symbol name="odf-checkmark"/>',

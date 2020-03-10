@@ -5,8 +5,11 @@ const path = require('path');
 
 const getImageFileDimensions = require('image-size');
 const nunjucks = require('../../model/nunjucksEnvironment');
+// const convertHTMLToPDF = require('pdf-puppeteer');
 const TaskWriter = require('./TaskWriter');
 const TextTransform = require('../text-transform/TextTransform');
+
+var pdf = require('html-pdf');
 
 module.exports = class IpvXmlTaskWriter extends TaskWriter {
 
@@ -165,8 +168,14 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 		const ipvXmlFolder = [this.procedure.ipvFields.mNumber].join('_');
 		const imagesFolder = [ipvXmlFolder, 'files'].join('_');
 		const ipvXmlFolderBuild = path.join(this.procedureWriter.program.outputPath, ipvXmlFolder);
-		const refDocsFolder = path.join(ipvXmlFolderBuild, ipvXmlFolder);
 		const buildPath = path.join(ipvXmlFolderBuild, imagesFolder);
+		const refDocsFolder = path.join(ipvXmlFolderBuild, 'RefDocs');
+		// FIX ME - used IPV fields to build appropriate folders
+		const tempRefShelfFolder = path.join(refDocsFolder, 'SODF');
+		const tempRefBookFolder = path.join(tempRefShelfFolder, 'IFM');
+		const procDocsFolder = path.join(tempRefBookFolder, ipvXmlFolder.substring(2));
+
+		const referenceFolders = [refDocsFolder, tempRefShelfFolder, tempRefBookFolder, procDocsFolder];
 
 		// if image folder doesn't exist then make one
 
@@ -176,9 +185,16 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 		if (!fs.existsSync(buildPath)) {
 			fs.mkdirSync(buildPath);
 		}
-		if (!fs.existsSync(refDocsFolder)) {
-			fs.mkdirSync(refDocsFolder);
+		for (const folder of referenceFolders) {
+			if (!fs.existsSync(folder)) {
+				fs.mkdirSync(folder);
+			}
 		}
+
+		// var callback = function(pdf) {
+		// 	// do something with the PDF like send it as the response
+		// 	console.log(`Current directory: ${process.cwd()}`);
+		// };
 
 		for (const imageMeta of images) {
 
@@ -199,7 +215,34 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 				// todo add fields for image number, and caption
 			});
 
+			const imageHtml = nunjucks.render('ipv-xml/refDocImage.html', {
+				path: path.join(imageMeta.path),
+				width: imageSize.width,
+				height: imageSize.height,
+				imageCaption: imageText
+			});
+
+			console.log(imageHtml);
+
+			// eslint-disable-next-line max-statements-per-line
+			// convertHTMLToPDF(imageHtml, callback, { path: path.join(procDocsFolder, [imageMeta.path.split('.')[0], 'pdf'].join('.')) });
+
+			const config = {
+				base: `file:///${buildPath}/`
+			};
+
+			// for some reason they change the F in figure names to rd for reference document
+			const rdName = imageMeta.path.split('.')[0].replace('F', 'rd');
+
+			console.log('buildpath :', buildPath);
+
+			pdf.create(imageHtml, config).toFile(path.join(procDocsFolder, [rdName, 'pdf'].join('.')), function(err, res) {
+				if (err) { return console.log(err); }
+				console.log(res);
+			  });
+
 			imageXmlArray.push(image);
+
 		}
 
 		return imageXmlArray;
