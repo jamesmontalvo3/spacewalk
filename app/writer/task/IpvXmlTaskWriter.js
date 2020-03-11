@@ -5,7 +5,6 @@ const path = require('path');
 
 const getImageFileDimensions = require('image-size');
 const nunjucks = require('../../model/nunjucksEnvironment');
-// const convertHTMLToPDF = require('pdf-puppeteer');
 const TaskWriter = require('./TaskWriter');
 const TextTransform = require('../text-transform/TextTransform');
 
@@ -174,7 +173,6 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 		const tempRefShelfFolder = path.join(refDocsFolder, 'SODF');
 		const tempRefBookFolder = path.join(tempRefShelfFolder, 'IFM');
 		const procDocsFolder = path.join(tempRefBookFolder, ipvXmlFolder.substring(2));
-
 		const referenceFolders = [refDocsFolder, tempRefShelfFolder, tempRefBookFolder, procDocsFolder];
 
 		// if image folder doesn't exist then make one
@@ -190,11 +188,6 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 				fs.mkdirSync(folder);
 			}
 		}
-
-		// var callback = function(pdf) {
-		// 	// do something with the PDF like send it as the response
-		// 	console.log(`Current directory: ${process.cwd()}`);
-		// };
 
 		for (const imageMeta of images) {
 
@@ -222,24 +215,17 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 				imageCaption: imageText
 			});
 
-			console.log(imageHtml);
-
-			// eslint-disable-next-line max-statements-per-line
-			// convertHTMLToPDF(imageHtml, callback, { path: path.join(procDocsFolder, [imageMeta.path.split('.')[0], 'pdf'].join('.')) });
-
 			const config = {
 				base: `file:///${buildPath}/`
 			};
 
-			// for some reason they change the F in figure names to rd for reference document
-			const rdName = imageMeta.path.split('.')[0].replace('F', 'rd');
-
-			console.log('buildpath :', buildPath);
+			// for some reason they change the f in figure names to rd for reference document
+			const rdName = imageMeta.path.split('.')[0].replace(/f/gi, 'rd');
 
 			pdf.create(imageHtml, config).toFile(path.join(procDocsFolder, [rdName, 'pdf'].join('.')), function(err, res) {
+				// eslint-disable-next-line max-statements-per-line
 				if (err) { return console.log(err); }
-				console.log(res);
-			  });
+			});
 
 			imageXmlArray.push(image);
 
