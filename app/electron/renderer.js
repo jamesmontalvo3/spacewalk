@@ -53,8 +53,13 @@ window.maestro.app = new ElectronProgram(window.appComponent);
 window.maestro.exportToWord = function(procedureOutputFilename, successFn, failureFn) {
 	const maestroEntry = path.resolve(__dirname, '../../index.js');
 	const projectPath = window.maestro.app.projectPath;
+	const cmd = `${process.execPath} "${maestroEntry}" compose --eva-docx "${projectPath}"`;
+	console.log(`Running export command: ${cmd}`);
 	childProcess.exec(
-		`node "${maestroEntry}" compose --eva-docx "${projectPath}"`,
+		cmd,
+		{
+			env: { ELECTRON_RUN_AS_NODE: '1' }
+		},
 		(error, stdout, stderr) => {
 			if (error) {
 				failureFn(error, stdout, stderr);

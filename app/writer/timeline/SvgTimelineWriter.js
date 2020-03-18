@@ -1,7 +1,7 @@
 'use strict';
 
 const fs = require('fs');
-const svg2img = require('svg2img');
+const sharp = require('sharp');
 const envHelper = require('../../helpers/envHelper');
 const objectHelper = require('../../helpers/objectHelper');
 const TimelineWriter = require('./TimelineWriter');
@@ -285,28 +285,19 @@ module.exports = class SvgTimelineWriter extends TimelineWriter {
 		const dimensions = {
 			width: this.imageWidth,
 			height: this.imageHeight,
-			preserveAspectRatio: true
+			preserveAspectRatio: true // probably not needed anymore, was from svg2img
 		};
-		svg2img(
-			this.canvas.svg(),
-			dimensions,
-			function(error, buffer) {
-				if (error) {
-					throw error;
+
+		sharp(Buffer.from(this.canvas.svg()))
+			.resize(dimensions.width, dimensions.height)
+			.toFile(filename, (err, info) => {
+				if (err) {
+					console.error(err);
 				}
-				const isBase64 = typeof buffer.indexOf === 'function' &&
-					buffer.indexOf('data:image/png;base64,') !== -1;
-
-				if (isBase64) {
-					buffer = buffer.replace(/^data:image\/png;base64,/, '');
-				}
-
-				const options = isBase64 ? { encoding: 'base64' } : undefined;
-
-				fs.writeFileSync(filename, buffer, options);
+				console.log(`SVG-->PNG: ${filename}`, info);
 				callback(dimensions);
-			}
-		);
+			});
+
 	}
 
 };
