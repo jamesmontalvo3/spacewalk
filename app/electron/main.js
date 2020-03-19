@@ -11,12 +11,16 @@ unhandled();
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow;
 
+const isDev = process.argv.indexOf('--dev') !== -1;
+
 /**
  * Function to be run on app.on('ready')
  */
 function createWindow() {
 	// Create the browser window.
 	mainWindow = new BrowserWindow({
+		title: isDev ? 'Maestro DEVELOPMENT VERSION' : 'Maestro',
+		darkTheme: true,
 		width: 800,
 		height: 600,
 		webPreferences: {
@@ -32,8 +36,9 @@ function createWindow() {
 	mainWindow.loadFile(path.join(__dirname, 'index.html'));
 
 	// Open the DevTools
-	// todo: it'd be good if this occured for development, but not for packaged builds
-	// mainWindow.webContents.openDevTools();
+	if (isDev) {
+		mainWindow.webContents.openDevTools();
+	}
 
 	const menu = Menu.buildFromTemplate(getMenuTemplate(mainWindow));
 	Menu.setApplicationMenu(menu);

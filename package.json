@@ -4,7 +4,7 @@
   "description": "Composing procedures for space operations",
   "main": "./app/electron/main.js",
   "scripts": {
-    "start": "electron ./app/electron/main.js",
+    "start": "electron ./app/electron/main.js --dev",
     "package": "electron-builder",
     "pre-commit-msg": "node ./test/helpers/preCommitMsg.js",
     "pre-commit-lint-complete": "node ./test/helpers/preCommitMsg.js lint",
