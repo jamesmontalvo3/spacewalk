@@ -6,6 +6,9 @@ const path = require('path');
 const childProcess = require('child_process');
 const shell = require('electron').shell;
 
+const unhandled = require('electron-unhandled');
+unhandled();
+
 const { ipcRenderer } = require('electron');
 
 const ElectronProgram = require('../model/ElectronProgram');
@@ -16,6 +19,9 @@ const gitCmd = function(projectPath, cmd) {
 		.toString()
 		.trim();
 };
+
+// FIXME should all of renderer.js be run through webpack?
+require('../../build/electron-bundle');
 
 // Handles fresult of selecting a procedure file after doing File-->Open
 // FIXME: No error handling for invalid file (i.e. not a procedure file)

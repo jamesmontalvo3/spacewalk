@@ -1,10 +1,11 @@
 {
   "name": "maestro",
-  "version": "5.1.0-alpha",
+  "version": "5.2.0-alpha",
   "description": "Composing procedures for space operations",
-  "main": "index.js",
+  "main": "./app/electron/main.js",
   "scripts": {
     "start": "electron ./app/electron/main.js",
+    "package": "electron-builder",
     "pre-commit-msg": "node ./test/helpers/preCommitMsg.js",
     "pre-commit-lint-complete": "node ./test/helpers/preCommitMsg.js lint",
     "lint": "eslint . --color",
@@ -19,6 +20,32 @@
     "build:electron": "env BABEL_ENV=build ./node_modules/.bin/webpack --config ./webpack/config-electron.js",
     "build:electron:watch": "env BABEL_ENV=build ./node_modules/.bin/webpack --watch --config webpack/config-electron.js",
     "build:electron:prod": "env BABEL_ENV=build ./node_modules/.bin/webpack -p --config webpack/config-electron.js"
+  },
+  "build": {
+    "asar": true,
+    "appId": "com.maestro.app",
+    "productName": "Maestro",
+    "directories": {
+      "output": "electron-release"
+    },
+    "files": [
+      "app/",
+      "build/electron-bundle.js",
+      "node_modules/",
+      "package.json",
+      "maestro.js",
+      "index.js"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "app/assets/images/favicon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true
+    }
   },
   "babel": {
     "env": {
@@ -96,6 +123,8 @@
     "css-loader": "^3.4.2",
     "diff": "^4.0.2",
     "docx": "^5.0.0-rc7",
+    "electron-log": "^4.1.0",
+    "electron-unhandled": "^3.0.2",
     "express": "^4.17.1",
     "filenamify": "^4.1.0",
     "final-form": "^4.18.7",
@@ -122,6 +151,7 @@
     "@babel/runtime": "^7.8.7",
     "chai": "^4.2.0",
     "electron": "^7.1.14",
+    "electron-builder": "^22.4.1",
     "electron-rebuild": "^1.10.1",
     "enzyme": "^3.11.0",
     "enzyme-adapter-react-16": "^1.15.2",
