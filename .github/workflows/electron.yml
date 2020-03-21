@@ -124,7 +124,7 @@ jobs:
       - name: Retrieve the current package version
         id: pkg
         run: |
-          pkgver=$(node ./scripts/get-pkg-version.js)
+          pkgver=$(node ./.github/scripts/get-pkg-version.js)
           echo ::set-output name=version::$pkgver
 
       # Now, download all resulting assets from the previous steps.
