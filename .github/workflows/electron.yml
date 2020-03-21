@@ -193,8 +193,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Maestro Setup ${{ steps.pkg.outputs.version }}.exe
-          asset_name: Maestro Setup ${{ steps.pkg.outputs.version }}.exe
+          asset_path: "./Maestro Setup ${{ steps.pkg.outputs.version }}.exe"
+          asset_name: "Maestro Setup ${{ steps.pkg.outputs.version }}.exe"
           asset_content_type: application/x-msdownload
 
 
