@@ -86,6 +86,10 @@ jobs:
           # hopefully below gets everything
           path: C:\npm\cache\_logs\
 
+      - name: Show maestro directory
+        run: ls .
+      - name: Show release directory
+        run: ls ./electron-release
       - name: Cache Windows release
         if: matrix.os == 'windows-2016'
         uses: actions/upload-artifact@v1
@@ -93,8 +97,6 @@ jobs:
           name: Maestro.Setup.${{ steps.pkg.outputs.version }}.exe
           path: ./electron-release/Maestro.Setup.${{ steps.pkg.outputs.version }}.exe
 
-      - name: see directory
-        run: ls ./electron-release
       # - uses: lucyio/upload-to-release@master
       #   with:
       #     name: lucyio/electron
