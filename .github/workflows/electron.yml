@@ -91,33 +91,17 @@ jobs:
         uses: actions/upload-artifact@v1
         with:
           name: Maestro.Setup.${{ steps.pkg.outputs.version }}.exe
-          path: ./release/Maestro.Setup.${{ steps.pkg.outputs.version }}.exe
+          path: ./electron-release/Maestro.Setup.${{ steps.pkg.outputs.version }}.exe
 
-
-      - name: check env
-        env:
-          ELECTRON: true
-          APP_VERSION_NUMBER: 0.5.9
-        run: set
-      - name: Build JS bundle for Electron
-        env:
-          ELECTRON: true
-          APP_VERSION_NUMBER: 0.5.9
-        run: npm run build:electron
-      - name: Build Electron
-        env:
-          ELECTRON: true
-          APP_VERSION_NUMBER: 0.5.9
-        run: yarn electron:buildWin
       - name: see directory
-        run: ls ./electron_dist/squirrel-windows
-      - uses: lucyio/upload-to-release@master
-        with:
-          name: lucyio/electron
-          path: ./electron_dist/squirrel-windows
-          action: unpublished
-          release_id: 0.5.9
-          release-repo: lucyio/electron
+        run: ls ./electron-release
+      # - uses: lucyio/upload-to-release@master
+      #   with:
+      #     name: lucyio/electron
+      #     path: ./electron_dist/squirrel-windows
+      #     action: unpublished
+      #     release_id: 0.5.9
+      #     release-repo: lucyio/electron
 
   # As soon as the build matrix has completed correctly, this job will
   # commence, creating a new draft release, downloading all assets from
