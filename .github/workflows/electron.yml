@@ -35,18 +35,24 @@ jobs:
 
       # Note: Add --vs2015 to install 2015 tools instead of 2017
       - name: Install node windows-build-tools
-        run: npm install --global --production windows-build-tools@5.2.2
+        if: matrix.os == 'windows-2016'
+        run: npm install --global --production windows-build-tools@5.2.2 --vs2015
       - name: Install node-gyp
+        if: matrix.os == 'windows-2016'
         run: npm install --global node-gyp@latest
       - name: Set node config to use python2.7
+        if: matrix.os == 'windows-2016'
         run: npm config set python python2.7
 
       # Note: Specify 2015 if 2015 installed in windows-build-tools above
-      - name: Set node config to set msvs_version to 2017
-        run: npm config set msvs_version 2017
+      - name: Set node config to set msvs_version to 2015
+        if: matrix.os == 'windows-2016'
+        run: npm config set msvs_version 2015
 
-      - name: Work around for Windows Server 2019
-        run: set path=%path%;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin
+      # 2019? Or 2016?
+      # - name: Work around for Windows Server 2019
+      #   if: matrix.os == 'windows-2016'
+      #   run: set path=%path%;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin
 
       - name: Install Maestro dependencies
         run: npm install
@@ -69,10 +75,10 @@ jobs:
 
       # WINDOWS ==============================================================
       - name: Build Windows NSIS installer
-        if: matrix.os == 'windows-2016' # Only if the job runs on Windows
+        if: matrix.os == 'windows-2016'
         run: npm run release:win
       - name: Cache Windows release
-        if: matrix.os == 'windows-2016' # Only if the job runs on Windows
+        if: matrix.os == 'windows-2016'
         uses: actions/upload-artifact@v1
         with:
           name: Maestro.Setup.${{ steps.pkg.outputs.version }}.exe
