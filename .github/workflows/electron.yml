@@ -77,6 +77,15 @@ jobs:
       - name: Build Windows NSIS installer
         if: matrix.os == 'windows-2016'
         run: npm run release:win
+      - name: Output debug log on failure
+        if: failure()
+        uses: actions/upload-artifact@v1
+        with:
+          name: npm-debug.log
+          # looking for a file like: 2020-03-21T13_20_14_628Z-debug.log
+          # hopefully below gets everything
+          path: C:\npm\cache\_logs\
+
       - name: Cache Windows release
         if: matrix.os == 'windows-2016'
         uses: actions/upload-artifact@v1
