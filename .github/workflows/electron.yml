@@ -94,8 +94,8 @@ jobs:
         if: matrix.os == 'windows-2016'
         uses: actions/upload-artifact@v1
         with:
-          name: Maestro Setup ${{ steps.pkg.outputs.version }}.exe
-          path: ./electron-release/Maestro Setup ${{ steps.pkg.outputs.version }}.exe
+          name: "Maestro Setup ${{ steps.pkg.outputs.version }}.exe"
+          path: "./electron-release/Maestro Setup ${{ steps.pkg.outputs.version }}.exe"
 
       # - uses: lucyio/upload-to-release@master
       #   with:
