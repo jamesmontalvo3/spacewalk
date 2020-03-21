@@ -131,7 +131,7 @@ jobs:
       - name: Download the Windows asset
         uses: actions/download-artifact@v1
         with:
-          name: Maestro.Setup.${{ steps.pkg.outputs.version }}.exe
+          name: "Maestro Setup ${{ steps.pkg.outputs.version }}.exe"
           path: .
       # - name: Download the macOS asset
       #   uses: actions/download-artifact@v1
@@ -163,7 +163,7 @@ jobs:
       # SHA-checksums file and then upload everything!
       - name: Generate SHA256 checksums
         run: |
-          sha256sum "Maestro.Setup.${{ steps.pkg.outputs.version }}.exe" > "SHA256SUMS.txt"
+          sha256sum "Maestro Setup ${{ steps.pkg.outputs.version }}.exe" > "SHA256SUMS.txt"
         # sha256sum "Zettlr-${{ steps.pkg.outputs.version }}.dmg" >> "SHA256SUMS.txt"
         # sha256sum "Zettlr-${{ steps.pkg.outputs.version }}-amd64.deb" >> "SHA256SUMS.txt"
         # sha256sum "Zettlr-${{ steps.pkg.outputs.version }}-x86_64.rpm" >> "SHA256SUMS.txt"
