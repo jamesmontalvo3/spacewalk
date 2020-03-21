@@ -76,7 +76,7 @@ jobs:
       # WINDOWS ==============================================================
       - name: Build Windows NSIS installer
         if: matrix.os == 'windows-2016'
-        run: npm run release:win
+        run: npm run package
       - name: Output debug log on failure
         if: failure()
         uses: actions/upload-artifact@v1
