@@ -38,7 +38,7 @@ jobs:
       - name: Get package-lock version
         id: pkglock
         run: |
-          pkgver=$(node ./.github/scripts/get-pkg-version.js)
+          pkgver=$(node ./.github/scripts/get-pkg-version.js --lock)
           echo ::set-output name=version::$pkgver
         shell: bash # Don't use powershell
 
