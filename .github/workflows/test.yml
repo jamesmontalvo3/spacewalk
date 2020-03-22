@@ -42,11 +42,12 @@ jobs:
           echo ::set-output name=version::$pkgver
         shell: bash # Don't use powershell
 
-      - name: Report versions
-        run: "echo \"package.json: ${{ steps.pkg.outputs.version }}, package-lock.json: ${{ steps.pkglock.outputs.version }}\""
-
       - name: Ensure package-lock.json version matches package.json version (run npm install)
-        if: steps.pkg.outputs.version != steps.pkglock.outputs.version
-        run: exit 1
+        run: |
+          if [${{ steps.pkg.outputs.version }} -eq ${{ steps.pkglock.outputs.version }}]; then
+            exit 0
+          else
+            exit 1
+          fi
         shell: bash
 
