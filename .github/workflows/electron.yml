@@ -179,7 +179,7 @@ jobs:
   # the previous job, verifying the checksum integrity, and uploading that
   # whole mess to the draft release.
   prepare_release:
-    needs: [build] # Make sure (and wait until) the build has succeeded
+    needs: [build_electron] # Make sure (and wait until) the build has succeeded
     runs-on: ubuntu-latest
     steps:
       # Clone the repository to get the ./scripts/get-pkg-version.js and the ./package.json
