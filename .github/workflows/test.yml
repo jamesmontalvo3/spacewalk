@@ -2,7 +2,9 @@ name: Run tests
 on:
   push:
     branches:
+      # run on all except publish
       # publish branch has its own workflow which includes tests
+      - '**'
       - '!publish'
 
 jobs:
