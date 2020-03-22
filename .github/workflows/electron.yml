@@ -40,21 +40,6 @@ jobs:
           echo ::set-output name=version::$pkgver
         shell: bash # Don't use powershell
 
-      # Save the current package.json's version value
-      # as the output from this step so that we can
-      # reference it later on.
-      - name: Get package-lock version
-        id: pkglock
-        run: |
-          pkgver=$(node ./.github/scripts/get-pkg-version.js)
-          echo ::set-output name=version::$pkgver
-        shell: bash # Don't use powershell
-
-      - name: Ensure package-lock.json version matches package.json version (run npm install)
-        if: steps.pkg.outputs.version != steps.pkglock.outputs.version
-        run: exit 1
-        shell: bash
-
       # Note: Add --vs2015 to install 2015 tools instead of 2017
       - name: Install node windows-build-tools
         if: matrix.os == 'windows-2016'

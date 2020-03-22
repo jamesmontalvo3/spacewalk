@@ -1,0 +1,53 @@
+name: Publish branch pre-merge
+on:
+  push:
+    branches: [publish]
+
+jobs:
+
+  # This job just makes sure that the Maestro version in package-lock.json matches the one in
+  # package.json
+  package_lock_updated:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT"
+
+      - uses: actions/checkout@master
+
+      - name: Setup NodeJS 12.x
+        uses: actions/setup-node@master
+        with:
+          node-version: 12.x
+
+      # Save the current package.json's version value
+      # as the output from this step so that we can
+      # reference it later on.
+      - name: Get package version
+        id: pkg
+        run: |
+          pkgver=$(node ./.github/scripts/get-pkg-version.js)
+          echo ::set-output name=version::$pkgver
+        shell: bash # Don't use powershell
+
+      # Save the current package.json's version value
+      # as the output from this step so that we can
+      # reference it later on.
+      - name: Get package-lock version
+        id: pkglock
+        run: |
+          pkgver=$(node ./.github/scripts/get-pkg-version.js --lock)
+          echo ::set-output name=version::$pkgver
+        shell: bash # Don't use powershell
+
+      - name: Ensure package-lock.json version matches package.json version (run npm install)
+        run: |
+          if [ "${{ steps.pkg.outputs.version }}" = "${{ steps.pkglock.outputs.version }}" ]; then
+            exit 0
+          else
+            exit 1
+          fi
+        shell: bash
+
