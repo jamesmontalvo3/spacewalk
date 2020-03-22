@@ -1,0 +1,271 @@
+name: Electron Build
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - publish
+
+jobs:
+
+  build_electron:
+    if: github.event.pull_request.merged == true
+
+    strategy:
+      matrix:
+        os: [windows-2016]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+
+      - name: Context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT"
+
+      - uses: actions/checkout@master
+
+      - name: Setup NodeJS 12.x
+        uses: actions/setup-node@master
+        with:
+          node-version: 12.x
+
+      # Save the current package.json's version value
+      # as the output from this step so that we can
+      # reference it later on.
+      - name: Get package version
+        id: pkg
+        run: |
+          pkgver=$(node ./.github/scripts/get-pkg-version.js)
+          echo ::set-output name=version::$pkgver
+        shell: bash # Don't use powershell
+
+      # Save the current package.json's version value
+      # as the output from this step so that we can
+      # reference it later on.
+      - name: Get package-lock version
+        id: pkglock
+        run: |
+          pkgver=$(node ./.github/scripts/get-pkg-version.js)
+          echo ::set-output name=version::$pkgver
+        shell: bash # Don't use powershell
+
+      - name: Ensure package-lock.json version matches package.json version (run npm install)
+        if: steps.pkg.outputs.version != steps.pkglock.outputs.version
+        run: exit 1
+        shell: bash
+
+      # Note: Add --vs2015 to install 2015 tools instead of 2017
+      - name: Install node windows-build-tools
+        if: matrix.os == 'windows-2016'
+        run: npm install --global --production windows-build-tools@5.2.2 --vs2015
+      - name: Install node-gyp
+        if: matrix.os == 'windows-2016'
+        run: npm install --global node-gyp@latest
+      - name: Set node config to use python2.7
+        if: matrix.os == 'windows-2016'
+        run: npm config set python python2.7
+
+      # Note: Specify 2015 if 2015 installed in windows-build-tools above
+      - name: Set node config to set msvs_version to 2015
+        if: matrix.os == 'windows-2016'
+        run: npm config set msvs_version 2015
+
+      # 2019? Or 2016?
+      # - name: Work around for Windows Server 2019
+      #   if: matrix.os == 'windows-2016'
+      #   run: set path=%path%;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin
+
+      - name: Install Maestro dependencies
+        run: npm install
+
+      - name: Webpack JS bundle
+        run: npm run build:electron
+
+      # Note: portions of this document copied from:
+      # https://github.com/Zettlr/Zettlr/blob/master/.github/workflows/build.yml
+
+      # WINDOWS ==============================================================
+      - name: Build Windows NSIS installer
+        if: matrix.os == 'windows-2016'
+        run: npm run package
+      - name: Output debug log on failure
+        if: failure()
+        uses: actions/upload-artifact@v1
+        with:
+          name: npm-debug.log
+          # looking for a file like: 2020-03-21T13_20_14_628Z-debug.log
+          # hopefully below gets everything
+          path: C:\npm\cache\_logs\
+
+      - name: Show maestro directory
+        run: ls .
+      - name: Show release directory
+        run: ls ./electron-release
+      - name: Cache Windows release
+        if: matrix.os == 'windows-2016'
+        uses: actions/upload-artifact@v1
+        with:
+          name: "Maestro Setup ${{ steps.pkg.outputs.version }}.exe"
+          path: "./electron-release/Maestro Setup ${{ steps.pkg.outputs.version }}.exe"
+
+      # - uses: lucyio/upload-to-release@master
+      #   with:
+      #     name: lucyio/electron
+      #     path: ./electron_dist/squirrel-windows
+      #     action: unpublished
+      #     release_id: 0.5.9
+      #     release-repo: lucyio/electron
+
+  # As soon as the build matrix has completed correctly, this job will
+  # commence, creating a new draft release, downloading all assets from
+  # the previous job, verifying the checksum integrity, and uploading that
+  # whole mess to the draft release.
+  prepare_release:
+    needs: [build] # Make sure (and wait until) the build has succeeded
+    runs-on: ubuntu-latest
+    steps:
+      # Clone the repository to get the ./scripts/get-pkg-version.js and the ./package.json
+      - uses: actions/checkout@v2
+
+      # Setup node to run the retrieval script
+      - name: Setup NodeJS 12.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: '12.x'
+      - name: Retrieve the current package version
+        id: pkg
+        run: |
+          pkgver=$(node ./.github/scripts/get-pkg-version.js)
+          echo ::set-output name=version::$pkgver
+
+      # Now, download all resulting assets from the previous steps.
+      - name: Download the Windows asset
+        uses: actions/download-artifact@v1
+        with:
+          name: "Maestro Setup ${{ steps.pkg.outputs.version }}.exe"
+          path: .
+      # - name: Download the macOS asset
+      #   uses: actions/download-artifact@v1
+      #   with:
+      #     name: Zettlr-${{ steps.pkg.outputs.version }}.dmg
+      #     path: .
+      # - name: Download the Debian asset
+      #   uses: actions/download-artifact@v1
+      #   with:
+      #     name: Zettlr-${{ steps.pkg.outputs.version }}-amd64.deb
+      #     path: .
+      # - name: Download the Fedora asset
+      #   uses: actions/download-artifact@v1
+      #   with:
+      #     name: Zettlr-${{ steps.pkg.outputs.version }}-x86_64.rpm
+      #     path: .
+      # - name: Download the AppImage (x32) asset
+      #   uses: actions/download-artifact@v1
+      #   with:
+      #     name: Zettlr-${{ steps.pkg.outputs.version }}-i386.AppImage
+      #     path: .
+      # - name: Download the AppImage (x64) asset
+      #   uses: actions/download-artifact@v1
+      #   with:
+      #     name: Zettlr-${{ steps.pkg.outputs.version }}-x86_64.AppImage
+      #     path: .
+
+      # Now we are set, we have all five release assets on the VM. It's time to create the
+      # SHA-checksums file and then upload everything!
+      - name: Generate SHA256 checksums
+        run: |
+          sha256sum "Maestro Setup ${{ steps.pkg.outputs.version }}.exe" > "SHA256SUMS.txt"
+        # sha256sum "Zettlr-${{ steps.pkg.outputs.version }}.dmg" >> "SHA256SUMS.txt"
+        # sha256sum "Zettlr-${{ steps.pkg.outputs.version }}-amd64.deb" >> "SHA256SUMS.txt"
+        # sha256sum "Zettlr-${{ steps.pkg.outputs.version }}-x86_64.rpm" >> "SHA256SUMS.txt"
+        # sha256sum "Zettlr-${{ steps.pkg.outputs.version }}-i386.AppImage" >> "SHA256SUMS.txt"
+        # sha256sum "Zettlr-${{ steps.pkg.outputs.version }}-x86_64.AppImage" >> "SHA256SUMS.txt"
+
+      - name: Verify checksums
+        run: sha256sum -c SHA256SUMS.txt
+
+      # Create a new release draft
+      - name: Create a new release draft
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ steps.pkg.outputs.version }} # tag_name is required, but can be overridden during edit
+          release_name: Release v${{ steps.pkg.outputs.version }} # release_name is required
+          body: If you can read this, we have forgotten to fill in the changelog. Sorry!
+          draft: true # Always create as draft, so that we can populate the remaining values easily
+
+
+      # And finally, upload that shit
+      - name: Upload Windows asset
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: "./Maestro Setup ${{ steps.pkg.outputs.version }}.exe"
+          asset_name: "Maestro Setup ${{ steps.pkg.outputs.version }}.exe"
+          asset_content_type: application/x-msdownload
+
+
+      # - name: Upload macOS asset
+      #   uses: actions/upload-release-asset@v1.0.1
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     upload_url: ${{ steps.create_release.outputs.upload_url }}
+      #     asset_path: ./Zettlr-${{ steps.pkg.outputs.version }}.dmg
+      #     asset_name: Zettlr-${{ steps.pkg.outputs.version }}.dmg
+      #     asset_content_type: application/octet-stream
+
+      # - name: Upload Debian asset
+      #   uses: actions/upload-release-asset@v1.0.1
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     upload_url: ${{ steps.create_release.outputs.upload_url }}
+      #     asset_path: ./Zettlr-${{ steps.pkg.outputs.version }}-amd64.deb
+      #     asset_name: Zettlr-${{ steps.pkg.outputs.version }}-amd64.deb
+      #     asset_content_type: application/octet-stream
+
+      # - name: Upload Fedora asset
+      #   uses: actions/upload-release-asset@v1.0.1
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     upload_url: ${{ steps.create_release.outputs.upload_url }}
+      #     asset_path: ./Zettlr-${{ steps.pkg.outputs.version }}-x86_64.rpm
+      #     asset_name: Zettlr-${{ steps.pkg.outputs.version }}-x86_64.rpm
+      #     asset_content_type: application/octet-stream
+
+      # - name: Upload AppImage (x32) asset
+      #   uses: actions/upload-release-asset@v1.0.1
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     upload_url: ${{ steps.create_release.outputs.upload_url }}
+      #     asset_path: ./Zettlr-${{ steps.pkg.outputs.version }}-i386.AppImage
+      #     asset_name: Zettlr-${{ steps.pkg.outputs.version }}-i386.AppImage
+      #     asset_content_type: application/octet-stream
+
+      # - name: Upload AppImage (x64) asset
+      #   uses: actions/upload-release-asset@v1.0.1
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     upload_url: ${{ steps.create_release.outputs.upload_url }}
+      #     asset_path: ./Zettlr-${{ steps.pkg.outputs.version }}-x86_64.AppImage
+      #     asset_name: Zettlr-${{ steps.pkg.outputs.version }}-x86_64.AppImage
+      #     asset_content_type: application/octet-stream
+
+      - name: Upload the checksums
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./SHA256SUMS.txt
+          asset_name: SHA256SUMS.txt
+          asset_content_type: text/plain
