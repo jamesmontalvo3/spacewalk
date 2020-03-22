@@ -1,5 +1,7 @@
-name: Test
-on: [push]
+name: Publish branch pre-merge
+on:
+  push:
+    branches: [publish]
 
 jobs:
 
@@ -39,6 +41,9 @@ jobs:
           pkgver=$(node ./.github/scripts/get-pkg-version.js)
           echo ::set-output name=version::$pkgver
         shell: bash # Don't use powershell
+
+      - name: Report versions
+        run: "echo \"package.json: ${{ steps.pkg.outputs.version }}, package-lock.json: ${{ steps.pkglock.outputs.version }}\""
 
       - name: Ensure package-lock.json version matches package.json version (run npm install)
         if: steps.pkg.outputs.version != steps.pkglock.outputs.version
