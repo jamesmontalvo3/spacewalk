@@ -25,12 +25,6 @@ jobs:
 
       - uses: actions/checkout@master
 
-        # FIXME assuming this means checkout the specific branch of Maestro listed below, but why
-        # would you do that? Hopefully actions/checkout just checks out whatever the current commit
-        # is.
-        # with:
-        #   ref: electron-build-ci
-
       - name: Setup NodeJS 12.x
         uses: actions/setup-node@master
         with:
