@@ -1,14 +1,20 @@
-name: Publish branch pre-merge
+name: Run tests
 on:
   push:
-    branches: [publish]
+    branches:
+      # publish branch has its own workflow which includes tests
+      - '!publish'
 
 jobs:
 
-  # This job just makes sure that the Maestro version in package-lock.json matches the one in
-  # package.json
-  package_lock_updated:
-    runs-on: ubuntu-latest
+  test:
+    strategy:
+      matrix:
+        os: [windows-2016]
+        node: [10,12]
+
+    runs-on: ${{ matrix.os }}
+
     steps:
       - name: Context
         env:
@@ -20,34 +26,10 @@ jobs:
       - name: Setup NodeJS 12.x
         uses: actions/setup-node@master
         with:
-          node-version: 12.x
+          node-version: ${{ matrix.node }}
 
-      # Save the current package.json's version value
-      # as the output from this step so that we can
-      # reference it later on.
-      - name: Get package version
-        id: pkg
-        run: |
-          pkgver=$(node ./.github/scripts/get-pkg-version.js)
-          echo ::set-output name=version::$pkgver
-        shell: bash # Don't use powershell
+      - name: Install Maestro dependencies
+        run: npm install
 
-      # Save the current package.json's version value
-      # as the output from this step so that we can
-      # reference it later on.
-      - name: Get package-lock version
-        id: pkglock
-        run: |
-          pkgver=$(node ./.github/scripts/get-pkg-version.js --lock)
-          echo ::set-output name=version::$pkgver
-        shell: bash # Don't use powershell
-
-      - name: Ensure package-lock.json version matches package.json version (run npm install)
-        run: |
-          if [ "${{ steps.pkg.outputs.version }}" = "${{ steps.pkglock.outputs.version }}" ]; then
-            exit 0
-          else
-            exit 1
-          fi
-        shell: bash
-
+      - name: Run tests
+        run: npm run test
