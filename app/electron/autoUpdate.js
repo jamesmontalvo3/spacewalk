@@ -21,13 +21,10 @@ ipcRenderer.on('update_downloaded', () => {
 	notification.classList.remove('hidden');
 });
 
-/**
- * FIXME: both this and next function used in notification HTML in electron index.html
- */
+// todo - move these closer to HTML where they're used, ref issue #168
 window.closeNotification = function() { // eslint-disable-line no-unused-vars
 	notification.classList.add('hidden');
 };
-
 window.restartApp = function() { // eslint-disable-line no-unused-vars
 	ipcRenderer.send('restart_app');
 };

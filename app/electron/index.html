@@ -20,7 +20,10 @@
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
 
-	<!-- Updates available message -->
+	<!--
+		Updates available message
+		TODO: Move this out of this file, into a React component, issue #168
+	-->
 	<div id="notification" class="hidden">
 		<p id="message"></p>
 		<button id="close-button" onClick="window.closeNotification()">
