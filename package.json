@@ -1,11 +1,12 @@
 {
   "name": "maestro",
-  "version": "5.2.8-alpha",
+  "version": "5.2.9-alpha",
   "description": "Composing procedures for space operations",
   "main": "./app/electron/main.js",
   "scripts": {
     "start": "electron ./app/electron/main.js --dev",
-    "package": "electron-builder",
+    "package:build": "electron-builder build --win --publish never",
+    "package:deploy": "electron-builder build --win --publish always",
     "pre-commit-msg": "node ./test/helpers/preCommitMsg.js",
     "pre-commit-lint-complete": "node ./test/helpers/preCommitMsg.js lint",
     "lint": "eslint . --color",

@@ -148,7 +148,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run package
+        run: npm run package:deploy
       - name: Output debug log on failure
         if: failure()
         uses: actions/upload-artifact@v1
