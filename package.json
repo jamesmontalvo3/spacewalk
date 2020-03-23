@@ -1,11 +1,12 @@
 {
   "name": "maestro",
-  "version": "5.2.3-alpha",
+  "version": "5.2.16-alpha",
   "description": "Composing procedures for space operations",
   "main": "./app/electron/main.js",
   "scripts": {
     "start": "electron ./app/electron/main.js --dev",
-    "package": "electron-builder",
+    "package:build": "electron-builder build --win --publish never",
+    "package:deploy": "electron-builder build --win --publish always",
     "pre-commit-msg": "node ./test/helpers/preCommitMsg.js",
     "pre-commit-lint-complete": "node ./test/helpers/preCommitMsg.js lint",
     "lint": "eslint . --color",
@@ -36,6 +37,9 @@
       "maestro.js",
       "index.js"
     ],
+    "publish": {
+      "provider": "github"
+    },
     "win": {
       "target": "nsis",
       "icon": "app/assets/images/favicon.ico"
@@ -125,6 +129,7 @@
     "docx": "^5.0.0-rc7",
     "electron-log": "^4.1.0",
     "electron-unhandled": "^3.0.2",
+    "electron-updater": "^4.2.5",
     "express": "^4.17.1",
     "filenamify": "^4.1.0",
     "final-form": "^4.18.7",

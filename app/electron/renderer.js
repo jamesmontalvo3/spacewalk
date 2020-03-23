@@ -48,6 +48,12 @@ ipcRenderer.on('initNewProject', function(event, dirpath) {
 	console.log('state now', window.maestro.state.state);
 });
 
+ipcRenderer.on('message', function(event, text) {
+	console.log('ipcRenderer.on("message")', text);
+});
+
+require('./autoUpdate');
+
 if (!window.maestro) {
 	window.maestro = {};
 }
