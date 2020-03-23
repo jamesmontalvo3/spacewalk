@@ -222,7 +222,7 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 			// for some reason they change the f in figure names to rd for reference document
 			const rdName = imageMeta.path.split('.')[0].replace(/f/gi, 'rd');
 
-			pdf.create(imageHtml, config).toFile(path.join(procDocsFolder, [rdName, 'pdf'].join('.')), function(err, res) {
+			pdf.create(imageHtml, config).toFile(path.join(procDocsFolder, [rdName, 'pdf'].join('.')), function(err) {
 				// eslint-disable-next-line max-statements-per-line
 				if (err) { return console.log(err); }
 			});
