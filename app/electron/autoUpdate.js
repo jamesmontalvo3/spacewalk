@@ -24,13 +24,10 @@ ipcRenderer.on('update_downloaded', () => {
 /**
  * FIXME: both this and next function used in notification HTML in electron index.html
  */
-function closeNotification() { // eslint-disable-line no-unused-vars
+window.closeNotification = function() { // eslint-disable-line no-unused-vars
 	notification.classList.add('hidden');
-}
+};
 
-/**
- *
- */
-function restartApp() { // eslint-disable-line no-unused-vars
+window.restartApp = function() { // eslint-disable-line no-unused-vars
 	ipcRenderer.send('restart_app');
-}
+};
