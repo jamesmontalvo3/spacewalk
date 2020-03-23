@@ -53,6 +53,7 @@ function createWindow() {
 	});
 
 	mainWindow.once('ready-to-show', () => {
+		console.log('Checking for updates...');
 		autoUpdater.checkForUpdatesAndNotify();
 	});
 
@@ -83,9 +84,11 @@ try {
 	});
 
 	autoUpdater.on('update-available', () => {
+		console.log('Update detected. Sending "update_available" msg.');
 		mainWindow.webContents.send('update_available');
 	});
 	autoUpdater.on('update-downloaded', () => {
+		console.log('Update download complete detected. Sending "update_downloaded" msg.');
 		mainWindow.webContents.send('update_downloaded');
 	});
 	ipcMain.on('restart_app', () => {
