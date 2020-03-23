@@ -1,6 +1,6 @@
 {
   "name": "maestro",
-  "version": "5.2.4-alpha",
+  "version": "5.2.5-alpha",
   "description": "Composing procedures for space operations",
   "main": "./app/electron/main.js",
   "scripts": {
