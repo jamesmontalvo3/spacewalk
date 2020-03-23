@@ -5,6 +5,10 @@ const getMenuTemplate = require('./getMenuTemplate');
 const log = require('electron-log');
 const { autoUpdater } = require('electron-updater');
 
+autoUpdater.logger = require('electron-log');
+autoUpdater.logger.transports.file.level = 'info';
+log.info('App starting...');
+
 const unhandled = require('electron-unhandled');
 unhandled();
 
@@ -13,6 +17,15 @@ unhandled();
 let mainWindow;
 
 const isDev = process.argv.indexOf('--dev') !== -1;
+
+/**
+ * Send a message to the main window
+ * @param {string} text
+ */
+function sendStatusToWindow(text) {
+	log.info(text);
+	mainWindow.webContents.send('message', text);
+}
 
 /**
  * Function to be run on app.on('ready')
@@ -52,10 +65,7 @@ function createWindow() {
 		mainWindow = null;
 	});
 
-	mainWindow.once('ready-to-show', () => {
-		console.log('Checking for updates...');
-		autoUpdater.checkForUpdatesAndNotify();
-	});
+	autoUpdater.checkForUpdatesAndNotify();
 
 }
 
@@ -83,14 +93,30 @@ try {
 		}
 	});
 
+	autoUpdater.on('checking-for-update', () => {
+		sendStatusToWindow('Checking for update...');
+	});
 	autoUpdater.on('update-available', () => {
 		console.log('Update detected. Sending "update_available" msg.');
 		mainWindow.webContents.send('update_available');
+	});
+	autoUpdater.on('download-progress', (progressObj) => {
+		let logMessage = 'Download speed: ' + progressObj.bytesPerSecond;
+		logMessage = logMessage + ' - Downloaded ' + progressObj.percent + '%';
+		logMessage = logMessage + ' (' + progressObj.transferred + '/' + progressObj.total + ')';
+		sendStatusToWindow(logMessage);
 	});
 	autoUpdater.on('update-downloaded', () => {
 		console.log('Update download complete detected. Sending "update_downloaded" msg.');
 		mainWindow.webContents.send('update_downloaded');
 	});
+	autoUpdater.on('update-not-available', (/* info */) => {
+		sendStatusToWindow('Update not available.');
+	});
+	autoUpdater.on('error', (err) => {
+		sendStatusToWindow('Error in auto-updater. ' + err);
+	});
+
 	ipcMain.on('restart_app', () => {
 		autoUpdater.quitAndInstall();
 	});
