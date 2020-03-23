@@ -1,8 +1,9 @@
 // Modules to control application life and create native browser window
-const { app, BrowserWindow, Menu } = require('electron');
+const { app, BrowserWindow, Menu, ipcMain } = require('electron');
 const path = require('path');
 const getMenuTemplate = require('./getMenuTemplate');
 const log = require('electron-log');
+const { autoUpdater } = require('electron-updater');
 
 const unhandled = require('electron-unhandled');
 unhandled();
@@ -50,6 +51,11 @@ function createWindow() {
 		// when you should delete the corresponding element.
 		mainWindow = null;
 	});
+
+	mainWindow.once('ready-to-show', () => {
+		autoUpdater.checkForUpdatesAndNotify();
+	});
+
 }
 
 try {
@@ -76,8 +82,15 @@ try {
 		}
 	});
 
-	// In this file you can include the rest of your app's specific main process
-	// code. You can also put them in separate files and require them here.
+	autoUpdater.on('update-available', () => {
+		mainWindow.webContents.send('update_available');
+	});
+	autoUpdater.on('update-downloaded', () => {
+		mainWindow.webContents.send('update_downloaded');
+	});
+	ipcMain.on('restart_app', () => {
+		autoUpdater.quitAndInstall();
+	});
 
 } catch (e) {
 	console.log(e);

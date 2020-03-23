@@ -48,6 +48,8 @@ ipcRenderer.on('initNewProject', function(event, dirpath) {
 	console.log('state now', window.maestro.state.state);
 });
 
+
+
 if (!window.maestro) {
 	window.maestro = {};
 }

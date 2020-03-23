@@ -145,6 +145,8 @@ jobs:
       # WINDOWS ==============================================================
       - name: Build Windows NSIS installer
         if: matrix.os == 'windows-2016'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm run package
       - name: Output debug log on failure
         if: failure()
