@@ -38,7 +38,7 @@ const transforms = [
 			}
 		},
 		ipvXml: (textTransformer, ...templateArgs) => {
-			// FIXME I think ipvXml looks something like this but this was just a guess for now
+			// FIXME ipvXml looks something like this but this was just a guess for now
 			return [`<verify><Symbol name="odf-checkmark"/> ${templateArgs.join(' ')}</verify>`];
 		}
 	},
