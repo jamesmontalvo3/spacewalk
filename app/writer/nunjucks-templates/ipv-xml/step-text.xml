@@ -1,5 +1,5 @@
 {% for line in texts %}
-<StepContent spacingAbove="single">
+<StepContent spacingAbove="single" itemId="">
     <Instruction>
         <ClearText>
             <Text>{{line}}</Text>

@@ -9,6 +9,7 @@ const TaskWriter = require('./TaskWriter');
 const TextTransform = require('../text-transform/TextTransform');
 
 var pdf = require('html-pdf');
+const uuidToIntMap = {};
 
 module.exports = class IpvXmlTaskWriter extends TaskWriter {
 
@@ -43,6 +44,13 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 		);
 
 		return view;
+	}
+
+	uuidToInt(uuid) {
+		if (!uuidToIntMap[uuid]) {
+			uuidToIntMap[uuid] = Object.keys(uuidToIntMap).length + 1;
+		}
+		return uuidToIntMap[uuid];
 	}
 
 	/**
@@ -158,7 +166,7 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 	}
 
 	insertStepFinalProcess(children, stepModel) {
-		return [`<Step stepId="${stepModel.uuid}">${children.join('\n')}</Step>`];
+		return [`<Step stepId="i${this.uuidToInt(stepModel.uuid)}">${children.join('\n')}</Step>`];
 	}
 
 	addImages(images) {
