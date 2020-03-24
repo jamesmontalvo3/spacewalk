@@ -34,11 +34,11 @@ const transforms = [
 			name: 'VERIFY',
 			transformArgs: true,
 			defaultTransformFn: (textTransformer, ...templateArgs) => {
-				return ['✓ ', ...templateArgs]; // glue check onto front of returned array
+				return ['Verify ', ...templateArgs]; // glue check onto front of returned array
 			}
 		},
 		ipvXml: (textTransformer, ...templateArgs) => {
-			// FIXME I think ipvXml looks something like this but this was just a guess for now
+			// FIXME ipvXml looks something like this but this was just a guess for now
 			return [`<verify><Symbol name="odf-checkmark"/> ${templateArgs.join(' ')}</verify>`];
 		}
 	},
@@ -70,6 +70,28 @@ const transforms = [
 					return [taskRole.actor];
 				}
 			}
+		}
+	},
+	{
+		template: {
+			name: 'REF',
+			transformArgs: true,
+			defaultTransformFn: (textTransformer, ...templateArgs) => {
+				return ['(', ...templateArgs, ')']; // glue check onto front of returned array
+			}
+		},
+		ipvXml: (textTransformer, ...templateArgs) => {
+			return [
+				`
+				<ReferenceInfo>
+					<Text>(</Text>
+					<Hyperlink target="${templateArgs.join(' ')}">
+						<Text>Figure X</Text>
+					</Hyperlink>
+					<Text>)</Text>
+				</ReferenceInfo>
+				`
+			];
 		}
 	},
 	{

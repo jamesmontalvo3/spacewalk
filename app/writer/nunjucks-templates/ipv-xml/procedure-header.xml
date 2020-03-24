@@ -25,7 +25,7 @@
     </ListTitle>
     {% for line in ipvLocation %}
     <Para>
-        <text>{{line}}</text>
+        <Text>{{line}}</Text>
     </Para>
     {% endfor %}
 </ItemizedList>
