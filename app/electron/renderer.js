@@ -6,6 +6,9 @@ const path = require('path');
 const childProcess = require('child_process');
 const shell = require('electron').shell;
 
+const unhandled = require('electron-unhandled');
+unhandled();
+
 const { ipcRenderer } = require('electron');
 
 const ElectronProgram = require('../model/ElectronProgram');
@@ -16,6 +19,9 @@ const gitCmd = function(projectPath, cmd) {
 		.toString()
 		.trim();
 };
+
+// FIXME should all of renderer.js be run through webpack?
+require('../../build/electron-bundle');
 
 // Handles fresult of selecting a procedure file after doing File-->Open
 // FIXME: No error handling for invalid file (i.e. not a procedure file)
@@ -42,6 +48,12 @@ ipcRenderer.on('initNewProject', function(event, dirpath) {
 	console.log('state now', window.maestro.state.state);
 });
 
+ipcRenderer.on('message', function(event, text) {
+	console.log('ipcRenderer.on("message")', text);
+});
+
+require('./autoUpdate');
+
 if (!window.maestro) {
 	window.maestro = {};
 }
@@ -53,8 +65,13 @@ window.maestro.app = new ElectronProgram(window.appComponent);
 window.maestro.exportToWord = function(procedureOutputFilename, successFn, failureFn) {
 	const maestroEntry = path.resolve(__dirname, '../../index.js');
 	const projectPath = window.maestro.app.projectPath;
+	const cmd = `${process.execPath} "${maestroEntry}" compose --eva-docx "${projectPath}"`;
+	console.log(`Running export command: ${cmd}`);
 	childProcess.exec(
-		`node "${maestroEntry}" compose --eva-docx "${projectPath}"`,
+		cmd,
+		{
+			env: { ELECTRON_RUN_AS_NODE: '1' }
+		},
 		(error, stdout, stderr) => {
 			if (error) {
 				failureFn(error, stdout, stderr);

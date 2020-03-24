@@ -1,0 +1,39 @@
+name: Run tests
+on:
+  push:
+    branches:
+      # run on all except publish
+      # publish branch has its own workflow which includes tests
+      - '**'
+      - '!publish'
+
+jobs:
+
+  test:
+    strategy:
+      matrix:
+        # TravisCI currently passes info over to Code Climate. When ready, disable TravisCI, then
+        # make GitHub Actions handle mac/linux testing and Code Climate.
+        os: [windows-2016]
+        node: [10,12]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT"
+
+      - uses: actions/checkout@master
+
+      - name: Setup NodeJS 12.x
+        uses: actions/setup-node@master
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Install Maestro dependencies
+        run: npm install
+
+      - name: Run tests
+        run: npm run test

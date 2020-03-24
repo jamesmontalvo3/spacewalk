@@ -1,15 +1,6 @@
 'use strict';
 
 /**
- * Callback for adding two numbers.
- *
- * @callback imageDataReadyCallback
- * @param {boolean|Object} error - Error or false (currently no error handling)
- * @param {string} imageDataUrl - Base64 image data to be inserted into <img src="<here>" /> or
- *                                otherwise handled.
- */
-
-/**
  *
  * @param {string} svgAsXML - XML string representation of the SVG
  * @param {Object} dimensions - Like { width: 900, height: 500 }

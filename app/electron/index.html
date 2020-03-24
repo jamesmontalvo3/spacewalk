@@ -7,7 +7,10 @@
 
 	<link href="../assets/css/base-eva.css" rel="stylesheet">
 
-	<title>Maestro</title>
+	<!--
+		Set this with BrowserWindow({ title: ... }) so dev versions can modify it
+		<title>Maestro</title>
+	-->
 	<script type="application/javascript">
 		console.log('this is electron');
 		window.isElectron = true;
@@ -17,10 +20,20 @@
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
 
-	<!-- bundled React stuff -->
-	<script type="application/javascript" src="../../build/electron-bundle.js"></script>
+	<!--
+		Updates available message
+		TODO: Move this out of this file, into a React component, issue #168
+	-->
+	<div id="notification" class="hidden">
+		<p id="message"></p>
+		<button id="close-button" onClick="window.closeNotification()">
+			Close
+		</button>
+		<button id="restart-button" onClick="window.restartApp()" class="hidden">
+			Restart
+		</button>
+	</div>
 
-	<!-- not bundled non-React stuff -->
 	<script type="application/javascript" src="./renderer.js"></script>
 </body>
 </html>
