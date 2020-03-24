@@ -34,7 +34,7 @@ const transforms = [
 			name: 'VERIFY',
 			transformArgs: true,
 			defaultTransformFn: (textTransformer, ...templateArgs) => {
-				return ['✓ ', ...templateArgs]; // glue check onto front of returned array
+				return ['Verify ', ...templateArgs]; // glue check onto front of returned array
 			}
 		},
 		ipvXml: (textTransformer, ...templateArgs) => {
@@ -77,11 +77,10 @@ const transforms = [
 			name: 'REF',
 			transformArgs: true,
 			defaultTransformFn: (textTransformer, ...templateArgs) => {
-				return ['✓ ', ...templateArgs]; // glue check onto front of returned array
+				return ['(', ...templateArgs, ')']; // glue check onto front of returned array
 			}
 		},
 		ipvXml: (textTransformer, ...templateArgs) => {
-			// FIXME need to pass figure number into here
 			return [
 				`
 				<ReferenceInfo>

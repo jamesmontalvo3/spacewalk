@@ -154,37 +154,37 @@ describe('TextTransform', function() {
 			{
 				template: 'VERIFY',
 				input: 'This is {{VERIFY | a template | call }} right here',
-				expected: 'This is ✓ a templatecall right here'
+				expected: 'This is Verify a templatecall right here'
 			},
 			{
 				template: 'VERIFY',
 				input: 'This is {{VERIFY    |    a template    |    call }} right here',
-				expected: 'This is ✓ a templatecall right here'
+				expected: 'This is Verify a templatecall right here'
 			},
 			{
 				template: 'VERIFY',
 				input: 'This is {{VERIFY|a GREEN }} right here',
-				expected: 'This is ✓ a <span style="font-weight:bold;color:green;">GREEN</span> right here'
+				expected: 'This is Verify a <span style="font-weight:bold;color:green;">GREEN</span> right here'
 			},
 			{
 				template: 'VERIFY',
 				input: 'This is {{VERIFY|a GREEN}} right here',
-				expected: 'This is ✓ a <span style="font-weight:bold;color:green;">GREEN</span> right here'
+				expected: 'This is Verify a <span style="font-weight:bold;color:green;">GREEN</span> right here'
 			},
 			{
 				template: 'VERIFY',
 				input: 'This is {{VERIFY|a {{DOWN}} }} right here',
-				expected: 'This is ✓ a ↓ right here'
+				expected: 'This is Verify a ↓ right here'
 			},
 			{
 				template: 'VERIFY',
 				input: 'This is {{VERIFY|a {{DOWN}}}} right here',
-				expected: 'This is ✓ a ↓ right here'
+				expected: 'This is Verify a ↓ right here'
 			},
 			{
 				template: 'VERIFY',
 				input: 'This is {{VERIFY|a {{ }}{{ {{{{{{}}}}}}}} { }{} {{}} }} right here',
-				expected: 'This is ✓ a {{ }}{{ {{{{{{}}}}}}}} { }{} {{}} right here'
+				expected: 'This is Verify a {{ }}{{ {{{{{{}}}}}}}} { }{} {{}} right here'
 			}
 
 			// FIXME neither of these work yet, since you can't have templates with parameters as
