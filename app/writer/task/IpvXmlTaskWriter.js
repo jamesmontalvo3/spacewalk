@@ -181,7 +181,12 @@ module.exports = class IpvXmlTaskWriter extends TaskWriter {
 		const tempRefShelfFolder = path.join(refDocsFolder, 'SODF');
 		const tempRefBookFolder = path.join(tempRefShelfFolder, 'IFM');
 		const procDocsFolder = path.join(tempRefBookFolder, ipvXmlFolder.substring(2));
-		const referenceFolders = [refDocsFolder, tempRefShelfFolder, tempRefBookFolder, procDocsFolder];
+		const referenceFolders = [
+			refDocsFolder,
+			tempRefShelfFolder,
+			tempRefBookFolder,
+			procDocsFolder
+		];
 
 		// if image folder doesn't exist then make one
 
