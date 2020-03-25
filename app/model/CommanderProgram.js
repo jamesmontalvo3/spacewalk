@@ -98,6 +98,11 @@ module.exports = class CommanderProgram extends Program {
 			{ option: 'ipv-xml', desc: 'Generate IPV compatible XML output', prop: 'ipvXml' }
 		];
 
+		this.transcribeInputTypes = [
+			{ option: 'eva-docx', desc: 'Convert EVA .docx to maestro yaml', prop: 'evaDocx' },
+			{ option: 'ipv-xml', desc: 'Convert IPV XML to maestro yaml', prop: 'ipvXml' }
+		];
+
 	}
 
 	/**
@@ -125,6 +130,19 @@ module.exports = class CommanderProgram extends Program {
 			this.doCompose();
 		});
 
+		const transcribe = this.commander
+			.command('transcribe [projectPath]')
+			.description('Convert files to a Maestro project');
+
+		for (const ot of this.transcribeInputTypes) {
+			transcribe.option(`--${ot.option}`, ot.desc, null);
+		}
+
+		transcribe.action((projectPath, options, filePath) => {
+			this.prepTranscribeArguments(projectPath, options, filePath);
+			this.doTranscribe();
+		});
+
 		this.commander
 			.command('conduct [projectPath]')
 			.description('Serve Maestro web app')
@@ -141,6 +159,26 @@ module.exports = class CommanderProgram extends Program {
 		let anyTrue = false;
 
 		for (const ot of this.composeOutputTypes) {
+			// map options inputs to program properties
+			if (options.all || options[ot.prop]) {
+				this[ot.prop] = true;
+				anyTrue = true;
+			} else {
+				this[ot.prop] = false;
+			}
+		}
+
+		if (!anyTrue) {
+			this.evaDocx = true; // default if nothing is selected
+		}
+	}
+
+	prepTranscribeArguments(projectPath, options, filePath) {
+		this.filePath = filePath;
+
+		let anyTrue = false;
+
+		for (const ot of this.transcribeInputTypes) {
 			// map options inputs to program properties
 			if (options.all || options[ot.prop]) {
 				this[ot.prop] = true;
@@ -210,6 +248,10 @@ module.exports = class CommanderProgram extends Program {
 		});
 	}
 
+	doTranscribe() {
+		this.transcribeProcedureFormats(this.filePath);
+	}
+
 	generateProcedureFormats(file) {
 
 		console.log(`Generating procedure from ${file}`);
@@ -269,6 +311,24 @@ module.exports = class CommanderProgram extends Program {
 			);
 		}
 		writer.writeFile(writeFileLocation);
+	}
+
+	transcribeProcedureFormats(file) {
+
+		console.log(`Generating maestro yaml from ${file}`);
+
+		if (this.evaDocx) {
+			console.log('this is the eva transcriber');
+
+			// const eva = new EvaDocxProcedureWriter(this, procedure);
+		}
+
+		if (this.ipvXml) {
+			// Run IpvXmlTranscriber
+			console.log('this is the IPV transcriber');
+			// this.renderBasicFormat(procedure, IpvXmlProcedureWriter, 'IPV XML', 'xml');
+		}
+
 	}
 
 	serveMaestroWeb(projectPath, options) {
