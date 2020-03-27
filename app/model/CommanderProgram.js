@@ -11,6 +11,7 @@ const EvaDocxProcedureWriter = require('../writer/procedure/EvaDocxProcedureWrit
 const SodfDocxProcedureWriter = require('../writer/procedure/SodfDocxProcedureWriter');
 const IpvXmlProcedureWriter = require('../writer/procedure/IpvXmlProcedureWriter');
 const EvaHtmlProcedureWriter = require('../writer/procedure/EvaHtmlProcedureWriter');
+const IpvXmlTranscriber = require('../transcriber/IpvXmlTranscriber');
 
 const Server = require('../web/Server');
 
@@ -132,14 +133,19 @@ module.exports = class CommanderProgram extends Program {
 
 		const transcribe = this.commander
 			.command('transcribe [projectPath]')
-			.description('Convert files to a Maestro project');
+			.description('Convert files to a Maestro project')
+			.option(
+				'--input',
+				'specify file to be transcribed',
+				null
+			);
 
-		for (const ot of this.transcribeInputTypes) {
-			transcribe.option(`--${ot.option}`, ot.desc, null);
+		for (const it of this.transcribeInputTypes) {
+			transcribe.option(`--${it.option}`, it.desc, null);
 		}
 
-		transcribe.action((projectPath, options, filePath) => {
-			this.prepTranscribeArguments(projectPath, options, filePath);
+		transcribe.action((projectPath, options) => {
+			this.prepTranscribeArguments(projectPath, options);
 			this.doTranscribe();
 		});
 
@@ -173,24 +179,28 @@ module.exports = class CommanderProgram extends Program {
 		}
 	}
 
-	prepTranscribeArguments(projectPath, options, filePath) {
-		this.filePath = filePath;
-
+	prepTranscribeArguments(projectPath, options) {
+		this.projectPath = handleProjectPath(projectPath);
 		let anyTrue = false;
 
-		for (const ot of this.transcribeInputTypes) {
+		for (const entry in options.commands) {
+			console.log('printing this out: ', entry);
+		}
+
+		for (const it of this.transcribeInputTypes) {
 			// map options inputs to program properties
-			if (options.all || options[ot.prop]) {
-				this[ot.prop] = true;
+			if (options.all || options[it.prop]) {
+				this[it.prop] = true;
 				anyTrue = true;
 			} else {
-				this[ot.prop] = false;
+				this[it.prop] = false;
 			}
 		}
 
 		if (!anyTrue) {
 			this.evaDocx = true; // default if nothing is selected
 		}
+
 	}
 
 	/**
@@ -249,7 +259,7 @@ module.exports = class CommanderProgram extends Program {
 	}
 
 	doTranscribe() {
-		this.transcribeProcedureFormats(this.filePath);
+		this.transcribeProcedureFormats();
 	}
 
 	generateProcedureFormats(file) {
@@ -313,9 +323,11 @@ module.exports = class CommanderProgram extends Program {
 		writer.writeFile(writeFileLocation);
 	}
 
-	transcribeProcedureFormats(file) {
+	transcribeProcedureFormats() {
 
-		console.log(`Generating maestro yaml from ${file}`);
+		// FIXME not getting input file name passed in using --input, thought it would be something like
+		// this.input, or transcribe this.transcribe.input, or commander.input
+		console.log(`Generating maestro yaml from ${this.transcribe.input}`);
 
 		if (this.evaDocx) {
 			console.log('this is the eva transcriber');
@@ -326,9 +338,18 @@ module.exports = class CommanderProgram extends Program {
 		if (this.ipvXml) {
 			// Run IpvXmlTranscriber
 			console.log('this is the IPV transcriber');
-			// this.renderBasicFormat(procedure, IpvXmlProcedureWriter, 'IPV XML', 'xml');
+			console.log('input :', this.commander.input);
+			this.transcribeBasicFormat(this.commander.input, IpvXmlTranscriber, 'IPV XML', 'xml');
 		}
 
+	}
+
+	transcribeBasicFormat(file, WriterClass, formatName) {
+		console.log(`Transcribing yaml from ${formatName} format`);
+		const writer = new WriterClass(file);
+		writer.buildDirectory();
+		writer.symbolCleanup();
+		writer.transcribe();
 	}
 
 	serveMaestroWeb(projectPath, options) {

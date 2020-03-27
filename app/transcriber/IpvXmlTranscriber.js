@@ -2,147 +2,89 @@
 
 'use strict';
 
-if (!process.argv[2]) {
-	console.error('You must pass a valid path to the xml zip file into this script');
-	process.exit(1);
-}
-
 const fs = require('fs');
 const path = require('path');
 const cheerio = require('cheerio');
 const AdmZip = require('adm-zip');
 const yaml = require('js-yaml');
-
-const ipvZipFile = path.join(process.cwd(), process.argv[2]);
-const ipvFileDir = path.dirname(ipvZipFile);
-const basename = path.basename(ipvZipFile, path.extname(ipvZipFile));
-
-// Extract IPV Zip file that contains XML and Images
-const zip = new AdmZip(ipvZipFile);
-zip.extractAllTo(ipvFileDir, true);
-
-const ipvFile = path.join(ipvFileDir, `${basename}.xml`);
-
-const projectDir = path.dirname(ipvFileDir);
-const tasksDir = path.join(projectDir, 'tasks'); // should be called activityDir need to fix when merging
-const procsDir = path.join(projectDir, 'procedures');
-const ipvSourceImageDir = path.join(ipvFileDir, `${basename}_files`);
-const imagesDir = path.join(projectDir, 'images');
 const odfSymbols = require('./odfSymbolMap.js');
+var $;
 
-if (!fs.existsSync(tasksDir)) {
-	fs.mkdirSync(tasksDir);
-}
-if (!fs.existsSync(procsDir)) {
-	fs.mkdirSync(procsDir);
-}
-if (!fs.existsSync(procsDir)) {
-	fs.mkdirSync(imagesDir);
-}
-
-// Read file directory from xml zip file and move images to patify image folder
-fs.readdir(ipvSourceImageDir, function(err, files) {
-	if (err) {
-		throw err;
+module.exports = class IpvXmlTranscriber {
+	constructor(file) {
+		this.file = file;
+		this.ipvZipFile = path.join(process.cwd(), file);
+		this.ipvFileDir = path.dirname(this.ipvZipFile);
+		this.basename = path.basename(this.ipvZipFile, path.extname(this.ipvZipFile));
+		this.zip = new AdmZip(this.ipvZipFile);
+		this.ipvFile = path.join(this.ipvFileDir, `${this.basename}.xml`);
+		this.projectDir = path.dirname(this.ipvFileDir);
+		this.tasksDir = path.join(this.projectDir, 'tasks'); // should be called activityDir need to fix when merging
+		this.procsDir = path.join(this.projectDir, 'procedures');
+		this.ipvSourceImageDir = path.join(this.ipvFileDir, `${this.basename}_files`);
+		this.imagesDir = path.join(this.projectDir, 'images');
 	}
-	files.forEach(function(file) {
-		fs.rename(path.join(ipvSourceImageDir, file), path.join(imagesDir, file), (err) => {
-			if (err) {
-				throw err;
+
+	/**
+	 * Returns cleaned up text from given object
+	 * @param {Object} input object to obtain clean text from
+	 * @return {string}      sanatized text
+	 */
+	sanatizeInput(input) {
+		return input.text().trim()
+			.replace(/\s+/g, ' ')
+			.replace(/&/g, '&amp;');
+	}
+
+	/**
+	 *
+	 * @param {Object} subject      object with tag that you want to compare
+	 * @param {string} comparison   string to compare with
+	 * @param {string} option       how to compare: tagName or includes tagName
+	 * @return {boolean}
+	 */
+	compareTag(subject, comparison, option = 'tagName') {
+		if (option === 'tagName') {
+			return $(subject).prop('tagName').toLowerCase() === comparison;
+		} else if (option === 'includes') {
+			return $(subject).prop('tagName').toLowerCase().includes(comparison);
+		}
+	}
+
+	/**
+	 * parse trhough itemized list tags (location, duration, crew)
+	 * @param  {Array} input     array of itemized list items
+	 * @return {string}          yaml markup for location, duration, crew,
+	 *                           ref procedures
+	 */
+	getItemizedList(input) {
+		const outPut = [];
+		$('itemizedlist').each(function(index, element) {
+			const listTitle = this.sanatizeInput($(element).find('listtitle'))
+				.replace(':', '')
+				.replace(' ', '')
+				.replace('(', '')
+				.replace(')', '')
+				.toLowerCase();
+			if (listTitle === input) {
+				$(element).children('para').each(function(index, element) {
+					outPut.push(this.sanatizeInput($(element)));
+				});
 			}
 
 		});
 
-	});
-
-});
-
-if (!['.xml'].includes(path.extname(ipvFile))) {
-	// Should perform more specific test to check xml is using IPV format
-	console.error(`${ipvFile} does not appear to be an XML file`);
-	process.exit(1);
-}
-
-// Checks if file path exists
-if (!fs.existsSync(ipvFile)) {
-	console.error(`${ipvFile} is not a valid file`);
-	process.exit(1);
-}
-
-try {
-	console.log('Loading XML');
-	var $ = cheerio.load(
-		fs.readFileSync(ipvFile),
-		{
-			xmlMode: true,
-			lowerCaseTags: true
-		}
-	);
-	console.log('XML loaded');
-} catch (err) {
-	throw new Error(err);
-}
-
-/**
- * Returns cleaned up text from given object
- * @param {Object} input object to obtain clean text from
- * @return {string}      sanatized text
- */
-function sanatizeInput(input) {
-	return input.text().trim()
-		.replace(/\s+/g, ' ')
-		.replace(/&/g, '&amp;');
-}
-
-/**
- *
- * @param {Object} subject      object with tag that you want to compare
- * @param {string} comparison   string to compare with
- * @param {string} option       how to compare: tagName or includes tagName
- * @return {boolean}
- */
-function compareTag(subject, comparison, option = 'tagName') {
-	if (option === 'tagName') {
-		return $(subject).prop('tagName').toLowerCase() === comparison;
-	} else if (option === 'includes') {
-		return $(subject).prop('tagName').toLowerCase().includes(comparison);
+		return outPut;
 	}
-}
 
-/**
- * parse trhough itemized list tags (location, duration, crew)
- * @param  {Array} input     array of itemized list items
- * @return {string}          yaml markup for location, duration, crew,
- *                           ref procedures
- */
-function getItemizedList(input) {
-	const outPut = [];
-	$('itemizedlist').each(function(index, element) {
-		const listTitle = sanatizeInput($(element).find('listtitle'))
-			.replace(':', '')
-			.replace(' ', '')
-			.replace('(', '')
-			.replace(')', '')
-			.toLowerCase();
-		if (listTitle === input) {
-			$(element).children('para').each(function(index, element) {
-				outPut.push(sanatizeInput($(element)));
-			});
-		}
-
-	});
-
-	return outPut;
-}
-
-/**
+	/**
  *
  * @param {Object} element tools, parts, or materials object
  * @param {string} indent  current yaml indent for output
  * @param {string} outPut  yaml output
  * @return {string}        yaml output
  */
-/*
+	/*
 function parseTools(element, indent, outPut = '') {
 	const toolsOutput = [];
 	$(element).children().each(function(index, element) {
@@ -181,11 +123,11 @@ function parseTools(element, indent, outPut = '') {
 }
 */
 
-/**
+	/**
  * Runs parseTools for tools, parts, materials section
  * @return {string}     yaml output
  */
-/*
+	/*
 function getToolsPartsMarterials() {
 	let outPut = '';
 	const sectionList = ['parts', 'materials', 'tools'];
@@ -200,189 +142,275 @@ function getToolsPartsMarterials() {
 }
 */
 
-/**
- * retrieves yaml output for an image
- * @param {Object} element  xml tag with image in it
- * @param {string} indent   current yaml indent
- * @return {string}         yaml output
- */
-function getImages(element) {
-	let imageYaml = {};
+	/**
+	 * retrieves yaml output for an image
+	 * @param {Object} element  xml tag with image in it
+	 * @param {string} indent   current yaml indent
+	 * @return {string}         yaml output
+	 */
+	getImages(element) {
+		let imageYaml = {};
 
-	$(element).children('image').each(function(index, element) {
-		imageYaml = [{
-			path: $(element).find('imagereference').attr('source').replace(/(.*)\//, ''),
-			text: sanatizeInput($(element).find('imagetitle > text')),
-			width: parseInt(($(element).find('imagereference').attr('width'))),
-			height: parseInt($(element).find('imagereference').attr('height')),
-			alt: $(element).find('imagereference').attr('alt').replace(/(.*)\//, '')
-		}];
+		$(element).children('image').each(function(index, element) {
+			imageYaml = [{
+				path: $(element).find('imagereference').attr('source').replace(/(.*)\//, ''),
+				text: this.sanatizeInput($(element).find('imagetitle > text')),
+				width: parseInt(($(element).find('imagereference').attr('width'))),
+				height: parseInt($(element).find('imagereference').attr('height')),
+				alt: $(element).find('imagereference').attr('alt').replace(/(.*)\//, '')
+			}];
 
-	});
+		});
 
-	return imageYaml;
-}
+		return imageYaml;
+	}
 
-/**
+	/**
  * retrieves header content of procedure
  * @return {string}  procedure header yaml
  */
-
-function getProcHeader() {
-	const outPut = {
+	getProcHeader() {
+		const outPut = {
 		// eslint-disable-next-line camelcase
-		procedure_name: $('proctitle > text').text().trim(),
-		ipvFields: {
-			procNumber: $('proctitle > procnumber').text().trim(),
-			schemaVersion: $('schemaversion').text().trim(),
-			authoringTool: $('authoringtool').text().trim(),
-			objective: $('procedureobjective').text().trim(),
-			procType: $('metadata').attr('procType'),
-			status: $('metadata').attr('status'),
-			date: sanatizeInput($('metadata > date')),
-			mNumber: sanatizeInput($('metadata > uniqueid')),
-			book: sanatizeInput($('metadata > book')),
-			applicability: sanatizeInput($('metadata > applicability')),
-			ipvVersion: sanatizeInput($('metadata > version')),
-			procCode: sanatizeInput($('metadata > proccode')),
-			ipvLocation: getItemizedList('location'),
-			ipvDuration: getItemizedList('duration'),
-			crewRequired: getItemizedList('crew'),
-			referencedProcedures: getItemizedList('referencedprocedures')
-		},
-		// getToolsPartsMarterials(),
-		columns: [
-			{
-				key: 'IV',
-				actors: ['*']
-			}
-		],
-		tasks: [{
-			file: `${basename}.yml`,
-			roles: { IV1: 'IV' }
-		}]
-	};
-	return yaml.safeDump(outPut);
-}
-
-function replaceFigureCalls(instructionElement) {
-	let textToReturn = '';
-	$(instructionElement).find('ReferenceInfo').each(function(index, referenceElement) {
-		if (referenceElement) {
-			// FIXME ref links point to PDFs, not actual images would make sense to point to images.
-			const hyperlinkTarget = $(referenceElement).find('Hyperlink').attr('target');
-			$(referenceElement).html(`<text>{{REF|${hyperlinkTarget}}}</text>`);
-
-		}
-
-	});
-
-	textToReturn = instructionElement.text().trim()
-		.replace(/\((\s)*{{REF/g, '{{REF')
-		.replace(/{{REF\|((\w|\/)*\.(\w*))}}(\s)*\)/g, '{{REF|$1}}')
-		.replace(/\((\s)*Figure\s\d{1,}(\s)*\)/g, '')
-		.replace(/\s+/g, ' ')
-		.replace(/&/g, '&amp;');
-
-	return textToReturn;
-
-}
-
-function buildStepFromElement(givenElement) {
-	const steps = [];
-	let currentComponent = {};
-	$(givenElement).children().each(function(index, currentElement) {
-
-		if (compareTag(currentElement, 'steptitle')) {
-			const instructionText = replaceFigureCalls($(currentElement).find('instruction'));
-			const titleText = sanatizeInput($(currentElement).children('text'));
-			if (instructionText) {
-				if (!currentComponent.text) {
-					currentComponent.text = [];
+			procedure_name: $('proctitle > text').text().trim(),
+			ipvFields: {
+				procNumber: $('proctitle > procnumber').text().trim(),
+				schemaVersion: $('schemaversion').text().trim(),
+				authoringTool: $('authoringtool').text().trim(),
+				objective: $('procedureobjective').text().trim(),
+				procType: $('metadata').attr('procType'),
+				status: $('metadata').attr('status'),
+				date: this.sanatizeInput($('metadata > date')),
+				mNumber: this.sanatizeInput($('metadata > uniqueid')),
+				book: this.sanatizeInput($('metadata > book')),
+				applicability: this.sanatizeInput($('metadata > applicability')),
+				ipvVersion: this.sanatizeInput($('metadata > version')),
+				procCode: this.sanatizeInput($('metadata > proccode')),
+				ipvLocation: this.getItemizedList('location'),
+				ipvDuration: this.getItemizedList('duration'),
+				crewRequired: this.getItemizedList('crew'),
+				referencedProcedures: this.getItemizedList('referencedprocedures')
+			},
+			// getToolsPartsMarterials(),
+			columns: [
+				{
+					key: 'IV',
+					actors: ['*']
 				}
-				currentComponent.text.push(instructionText);
-			}
-			if (titleText.length > 0) {
-				if (Object.keys(currentComponent).length > 0) {
-					steps.push(currentComponent);
-					currentComponent = {};
-				}
-				currentComponent.title = titleText;
-			}
-		}
-
-		if (compareTag(currentElement, 'stepcontent')) {
-			const instruction = replaceFigureCalls($(currentElement).find('instruction'));
-			const image = sanatizeInput($(currentElement).find('image'));
-			if (instruction.length > 0) {
-				currentComponent.text = currentComponent.text || [];
-				currentComponent.text.push(instruction);
-			}
-			if (image) {
-				currentComponent.images = currentComponent.images || [];
-				currentComponent.images.push(...getImages(currentElement));
-			}
-		}
-
-		if (compareTag(currentElement, 'clarifyinginfo')) {
-			const ncwType = $(currentElement).attr('infoType');
-			currentComponent[ncwType] = currentComponent[ncwType] || [];
-			$(currentElement).children('infotext').each(function(index, ncwText) {
-				currentComponent[ncwType].push(sanatizeInput($(ncwText)));
-			});
-		}
-
-		if (compareTag(currentElement, 'step')) {
-			currentComponent.substeps = currentComponent.substeps || [];
-			currentComponent.substeps.push(...buildStepFromElement(currentElement));
-		}
-
-	});
-
-	if (Object.keys(currentComponent).length > 0) {
-		steps.push(currentComponent);
+			],
+			tasks: [{
+				file: `${this.basename}.yml`,
+				roles: { IV1: 'IV' }
+			}]
+		};
+		return yaml.safeDump(outPut);
 	}
 
-	return steps;
+	/**
+	 * Changes figure references into {{REF}} tags
+	 * @param {Object} instructionElement  xml tag with image in it
+	 * @return {string}         yaml output
+	 */
+	replaceFigureCalls(instructionElement) {
+		let textToReturn = '';
+		$(instructionElement).find('ReferenceInfo').each(function(index, referenceElement) {
+			if (referenceElement) {
+			// FIXME ref links point to PDFs, not actual images would make sense to point to images.
+				const hyperlinkTarget = $(referenceElement).find('Hyperlink').attr('target');
+				$(referenceElement).html(`<text>{{REF|${hyperlinkTarget}}}</text>`);
 
-}
-
-function buildActivity() {
-	const activity = {
-		title: basename,
-		roles: [{
-			name: 'IV1',
-			duration: {
-				minutes: 150
 			}
-		}],
-		steps: [{ IV: [] }]
-	};
 
-	activity.steps[0].IV.push(...buildStepFromElement('ChecklistProcedure > step'));
+		});
 
-	return yaml.safeDump(activity);
+		textToReturn = instructionElement.text().trim()
+			.replace(/\((\s)*{{REF/g, '{{REF')
+			.replace(/{{REF\|((\w|\/)*\.(\w*))}}(\s)*\)/g, '{{REF|$1}}')
+			.replace(/\((\s)*Figure\s\d{1,}(\s)*\)/g, '')
+			.replace(/\s+/g, ' ')
+			.replace(/&/g, '&amp;');
 
-}
+		return textToReturn;
 
-$('VerifyCallout').each(function(index, element) {
-	const verifyType = $(element).attr('verifyType').toUpperCase();
-	const verifyParent = $(element).parent();
-	$(verifyParent).prepend(`<text>{{${verifyType}}}</text>`);
-});
+	}
 
-$('Symbol').each(function(index, element) {
-	const symbolType = $(element).attr('name');
-	const maestroSymbol = odfSymbols.odfToMaestro(symbolType);
-	$(element).prepend(`<text>${maestroSymbol}</text>`);
-});
+	/**
+ * Builds yaml step output from xml element
+ * @param {Object} givenElement  xml tag with step content
+ * @return {string}         yaml output
+ */
+	buildStepFromElement(givenElement) {
+		const steps = [];
+		let currentComponent = {};
+		$(givenElement).children().each(function(index, currentElement) {
 
-$('verifyoperator').each(function(index, element) {
-	const symbolType = $(element).attr('operator').toUpperCase();
-	$(element).prepend(`<text>{{${symbolType}}}</text>`);
-});
+			if (this.compareTag(currentElement, 'steptitle')) {
+				const instructionText = this.replaceFigureCalls($(currentElement).find('instruction'));
+				const titleText = this.sanatizeInput($(currentElement).children('text'));
+				if (instructionText) {
+					if (!currentComponent.text) {
+						currentComponent.text = [];
+					}
+					currentComponent.text.push(instructionText);
+				}
+				if (titleText.length > 0) {
+					if (Object.keys(currentComponent).length > 0) {
+						steps.push(currentComponent);
+						currentComponent = {};
+					}
+					currentComponent.title = titleText;
+				}
+			}
 
-// write procedure file
-fs.writeFileSync(path.join(procsDir, `${basename}.yml`), `${getProcHeader()}`);
-// write task file
-fs.writeFileSync(path.join(tasksDir, `${basename}.yml`), `${buildActivity()}`);
+			if (this.compareTag(currentElement, 'stepcontent')) {
+				const instruction = this.replaceFigureCalls($(currentElement).find('instruction'));
+				const image = this.sanatizeInput($(currentElement).find('image'));
+				if (instruction.length > 0) {
+					currentComponent.text = currentComponent.text || [];
+					currentComponent.text.push(instruction);
+				}
+				if (image) {
+					currentComponent.images = currentComponent.images || [];
+					currentComponent.images.push(...this.getImages(currentElement));
+				}
+			}
+
+			if (this.compareTag(currentElement, 'clarifyinginfo')) {
+				const ncwType = $(currentElement).attr('infoType');
+				currentComponent[ncwType] = currentComponent[ncwType] || [];
+				$(currentElement).children('infotext').each(function(index, ncwText) {
+					currentComponent[ncwType].push(this.sanatizeInput($(ncwText)));
+				});
+			}
+
+			if (this.compareTag(currentElement, 'step')) {
+				currentComponent.substeps = currentComponent.substeps || [];
+				currentComponent.substeps.push(...this.buildStepFromElement(currentElement));
+			}
+
+		});
+
+		if (Object.keys(currentComponent).length > 0) {
+			steps.push(currentComponent);
+		}
+
+		return steps;
+
+	}
+
+	/**
+	 * Builds activity yaml
+	 * @return {string}         yaml output
+	 */
+	buildActivity() {
+		const activity = {
+			title: this.basename,
+			roles: [{
+				name: 'IV1',
+				duration: {
+					minutes: 150
+				}
+			}],
+			steps: [{ IV: [] }]
+		};
+
+		activity.steps[0].IV.push(...this.buildStepFromElement('ChecklistProcedure > step'));
+
+		return yaml.safeDump(activity);
+
+	}
+
+	/**
+	 * Builds maestro directories
+	 */
+	buildDirectory() {
+		this.zip.extractAllTo(this.ipvFileDir, true);
+
+		if (!fs.existsSync(this.tasksDir)) {
+			fs.mkdirSync(this.tasksDir);
+		}
+		if (!fs.existsSync(this.procsDir)) {
+			fs.mkdirSync(this.procsDir);
+		}
+		if (!fs.existsSync(this.procsDir)) {
+			fs.mkdirSync(this.imagesDir);
+		}
+
+		// Read file directory from xml zip file and move images to patify image folder
+		fs.readdir(this.ipvSourceImageDir, function(err, files) {
+			if (err) {
+				throw err;
+			}
+			files.forEach(function(file) {
+				fs.rename(path.join(this.ipvSourceImageDir, file), path.join(this.imagesDir, file), (err) => {
+					if (err) {
+						throw err;
+					}
+
+				});
+
+			});
+
+		});
+
+		if (!['.xml'].includes(path.extname(this.ipvFile))) {
+			// Should perform more specific test to check xml is using IPV format
+			console.error(`${this.ipvFile} does not appear to be an XML file`);
+			process.exit(1);
+		}
+
+		// Checks if file path exists
+		if (!fs.existsSync(this.ipvFile)) {
+			console.error(`${this.ipvFile} is not a valid file`);
+			process.exit(1);
+		}
+
+		try {
+			console.log('Loading XML');
+			$ = cheerio.load(
+				fs.readFileSync(this.ipvFile),
+				{
+					xmlMode: true,
+					lowerCaseTags: true
+				}
+			);
+			console.log('XML loaded');
+		} catch (err) {
+			throw new Error(err);
+		}
+
+	}
+
+	/**
+	 * Converts XML symbol tags to Maestro tags
+	 */
+	symbolCleanup() {
+		$('VerifyCallout').each(function(index, element) {
+			const verifyType = $(element).attr('verifyType').toUpperCase();
+			const verifyParent = $(element).parent();
+			$(verifyParent).prepend(`<text>{{${verifyType}}}</text>`);
+		});
+
+		$('Symbol').each(function(index, element) {
+			const symbolType = $(element).attr('name');
+			const maestroSymbol = odfSymbols.odfToMaestro(symbolType);
+			$(element).prepend(`<text>${maestroSymbol}</text>`);
+		});
+
+		$('verifyoperator').each(function(index, element) {
+			const symbolType = $(element).attr('operator').toUpperCase();
+			$(element).prepend(`<text>{{${symbolType}}}</text>`);
+		});
+
+	}
+
+	transcribe() {
+		this.buildDirectory();
+		this.symbolCleanup();
+		// write procedure file
+		fs.writeFileSync(path.join(this.procsDir, `${this.basename}.yml`), `${this.getProcHeader()}`);
+		// write task file
+		fs.writeFileSync(path.join(this.tasksDir, `${this.basename}.yml`), `${this.buildActivity()}`);
+	}
+
+};
