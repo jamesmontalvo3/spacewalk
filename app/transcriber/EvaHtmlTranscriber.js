@@ -2,19 +2,12 @@
 
 'use strict';
 
-console.log('patify v0.1.0');
-
-if (!process.argv[2]) {
-	console.error('You must pass a valid file path into this script');
-	process.exit(1);
-}
-
 const fs = require('fs');
 const path = require('path');
 const cheerio = require('cheerio');
 var $;
 
-module.exports = class EvaDocXTranscriber {
+module.exports = class EvaHtmlTranscriber {
 
 	constructor(file) {
 		this.htmlFile = path.join(process.cwd(), file);
@@ -42,10 +35,10 @@ module.exports = class EvaDocXTranscriber {
 			fs.mkdirSync(this.procsDir);
 		}
 		if (!fs.existsSync(this.imagesDir)) {
-			fs.mkdirSync(imagesDir);
+			fs.mkdirSync(this.imagesDir);
 		}
 
-		this.basename = path.basename(htmlFile, path.extname(htmlFile));
+		this.basename = path.basename(this.htmlFile, path.extname(this.htmlFile));
 
 		if (!['.html', '.htm'].includes(path.extname(this.htmlFile))) {
 			console.error(`${this.htmlFile} does not appear to be an HTML file`);
@@ -57,7 +50,7 @@ module.exports = class EvaDocXTranscriber {
 			process.exit(1);
 		}
 
-		const arrayUnique = (value, index, self) => {
+		this.arrayUnique = (value, index, self) => {
 			return self.indexOf(value) === index;
 		};
 
@@ -259,7 +252,6 @@ module.exports = class EvaDocXTranscriber {
 		return output;
 	}
 
-
 	processParagraph(index, paragraphSourceText, colId) {
 		const $para = $(paragraphSourceText);
 		const images = [];
@@ -270,8 +262,8 @@ module.exports = class EvaDocXTranscriber {
 			const filename = srcParts[srcParts.length - 1];
 			const imagePaths = {
 				filename: filename,
-				projectImagePath: path.join(imagesDir, filename),
-				docxImagePath: path.join(htmlFileDir, src)
+				projectImagePath: path.join(this.imagesDir, filename),
+				docxImagePath: path.join(this.htmlFileDir, src)
 			};
 			images.push(imagePaths);
 			if (fs.existsSync(imagePaths.projectImagePath)) {
@@ -377,7 +369,7 @@ module.exports = class EvaDocXTranscriber {
 		return paragraphYamlText;
 	}
 
-/**
+	/**
  *
  *
  * Start actions. Above and below this point should probably be separated into different files
@@ -385,143 +377,145 @@ module.exports = class EvaDocXTranscriber {
  *
  */
 
-
-
 	getTaskHeader(title, steps, crewAduration, crewBduration) {
 		let crewA = '', crewB = '';
 
 		if (crewAduration) {
-				crewA = `
-		- name: crewA
-			description: TBD
-			duration:
-			minutes: ${crewAduration}
-		`;
-			}
-
-			if (crewBduration) {
-				crewB = `  - name: crewB
-			description: TBD
-			duration:
-			minutes: ${crewBduration}
-		`;
-			}
-
-			if (!crewA && !crewB) {
-				throw new Error('need either crew A or crew B');
-			}
-
-			return `---
-		title: "${title}"
-		roles:
-
-		${crewA}
-
-		${crewB}
-
-		steps:
-
-		${steps}
-		`;
-	};
-
-$('body > div > div > table, body > div > table').each((t, table) => {
-
-	const head = $(table).children('thead');
-	if (!head || head.length === 0) {
-		return;
-	}
-
-	const colHeaders = [];
-	$(table).children('thead').children('tr').children('td').each((i, e) => {
-		colHeaders.push($(e).text());
-	});
-
-	let colIds;
-	if (colHeaders.length === 3) {
-		colIds = [
-			'IV',
-			'crewA',
-			'crewB'
-		];
-	} else {
-		colIds = [];
-		for (const text of colHeaders) {
-			if (text.indexOf('IV') > -1) {
-				colIds.push('IV');
-			} else if (text.indexOf('EV1') > -1) {
-				colIds.push('crewA');
-			} else if (text.indexOf('EV2') > -1) {
-				colIds.push('crewB');
-			} else {
-				console.error('CURRENTLY ONLY IV, EV1, EV2 ACTORS ARE SUPPORTED');
-			}
+			crewA = `
+  - name: crewA
+    description: TBD
+    duration:
+      minutes: ${crewAduration}
+`;
 		}
+
+		if (crewBduration) {
+			crewB = `
+  - name: crewB
+    description: TBD
+    duration:
+      minutes: ${crewBduration}
+`;
+		}
+
+		if (!crewA && !crewB) {
+			throw new Error('need either crew A or crew B');
+		}
+
+		return `---
+title: "${title}"
+roles:
+${crewA}
+
+${crewB}
+
+steps:
+
+${steps}
+`;
 	}
 
-	let taskText = '';
-	$(table).children('tbody').children('tr').each((r, row) => {
-		const rowText = [[], [], []];
-		const actorKeys = [];
+	transcribe() {
 
-		$(row).children('td').each((c, col) => {
-			const $td = $(col);
-			const colspan = $td.attr('colspan');
-			let colId;
-			if (colspan && colspan > 1) {
-				colId = colIds.slice(c, c + colspan).join(' + ');
-			} else {
-				colId = colIds[c];
-			}
-			actorKeys.push(colId);
+		this.buildDirectory();
 
-			if (c > 2) {
-				console.error(`bad column: ${c}`);
-				console.error($(row).text());
+		$('body > div > div > table, body > div > table').each((t, table) => {
+
+			const head = $(table).children('thead');
+			if (!head || head.length === 0) {
+				return;
 			}
-			$(col).children('p').each((p, para) => {
-				rowText[c].push(this.processParagraph(p, para, colId));
+
+			const colHeaders = [];
+			$(table).children('thead').children('tr').children('td').each((i, e) => {
+				colHeaders.push($(e).text());
 			});
-		});
 
-		taskText += this.createSyncedSimoBlocks(rowText, actorKeys);
-	});
-
-	if (taskText) {
-		let title;
-		let minutesByColId;
-		if (this.currentTaskTitles.length > 0) {
-			minutesByColId = {};
-			const allTitles = [];
-			for (const subtask of this.currentTaskTitles) {
-				allTitles.push(subtask.title);
-				for (const cur of subtask.colId.split(' + ')) {
-					if (!minutesByColId[cur]) {
-						minutesByColId[cur] = 0;
+			let colIds;
+			if (colHeaders.length === 3) {
+				colIds = [
+					'IV',
+					'crewA',
+					'crewB'
+				];
+			} else {
+				colIds = [];
+				for (const text of colHeaders) {
+					if (text.indexOf('IV') > -1) {
+						colIds.push('IV');
+					} else if (text.indexOf('EV1') > -1) {
+						colIds.push('crewA');
+					} else if (text.indexOf('EV2') > -1) {
+						colIds.push('crewB');
+					} else {
+						console.error('CURRENTLY ONLY IV, EV1, EV2 ACTORS ARE SUPPORTED');
 					}
-					minutesByColId[cur] += subtask.hours * 60 + subtask.minutes;
 				}
 			}
-			title = allTitles.filter(arrayUnique).join(' & ');
-		}
 
-		this.currentTaskTitles = []; // reset for next task
+			let taskText = '';
+			$(table).children('tbody').children('tr').each((r, row) => {
+				const rowText = [[], [], []];
+				const actorKeys = [];
 
-		if (!title) {
-			title = `Task ${t}`;
-		}
-		if (!minutesByColId) {
-			minutesByColId = { crewA: 30, crewB: 30 };
-		}
-		this.tasks[t] = {
-			fileContent: this.getTaskHeader(title, taskText, minutesByColId.crewA, minutesByColId.crewB),
-			title: title
-		};
-	}
+				$(row).children('td').each((c, col) => {
+					const $td = $(col);
+					const colspan = $td.attr('colspan');
+					let colId;
+					if (colspan && colspan > 1) {
+						colId = colIds.slice(c, c + colspan).join(' + ');
+					} else {
+						colId = colIds[c];
+					}
+					actorKeys.push(colId);
 
-});
+					if (c > 2) {
+						console.error(`bad column: ${c}`);
+						console.error($(row).text());
+					}
+					$(col).children('p').each((p, para) => {
+						rowText[c].push(this.processParagraph(p, para, colId));
+					});
+				});
 
-var procedure = `procedure_name: ${basename}
+				taskText += this.createSyncedSimoBlocks(rowText, actorKeys);
+			});
+
+			if (taskText) {
+				let title;
+				let minutesByColId;
+				if (this.currentTaskTitles.length > 0) {
+					minutesByColId = {};
+					const allTitles = [];
+					for (const subtask of this.currentTaskTitles) {
+						allTitles.push(subtask.title);
+						for (const cur of subtask.colId.split(' + ')) {
+							if (!minutesByColId[cur]) {
+								minutesByColId[cur] = 0;
+							}
+							minutesByColId[cur] += subtask.hours * 60 + subtask.minutes;
+						}
+					}
+					title = allTitles.filter(this.arrayUnique).join(' & ');
+				}
+
+				this.currentTaskTitles = []; // reset for next task
+
+				if (!title) {
+					title = `Task ${t}`;
+				}
+				if (!minutesByColId) {
+					minutesByColId = { crewA: 30, crewB: 30 };
+				}
+				this.tasks[t] = {
+					fileContent: this.getTaskHeader(title, taskText, minutesByColId.crewA, minutesByColId.crewB),
+					title: title
+				};
+			}
+
+		});
+
+		var procedure = `procedure_name: ${this.basename}
 
 columns:
 
@@ -541,42 +535,42 @@ columns:
 tasks:
 `;
 
-const taskColors = [
-	'#D6D6D6',
-	'#F0F8FF',
-	'#F0F8FF',
-	'#F0F8FF',
-	'#FFDEAD',
-	'#FFDEAD',
-	'#FFDEAD',
-	'#DEB887',
-	'#DEB887',
-	'#DEB887',
-	'#9AFF9A',
-	'#9AFF9A',
-	'#9AFF9A',
-	'#9AFF9A',
-	'#FFBBFF',
-	'#FFBBFF',
-	'#FFBBFF',
-	'#D3D3D3'
-];
-for (let t = 0; t < this.tasks.length; t++) {
-	if (!this.tasks[t] || !this.tasks[t].fileContent) {
-		continue;
-	}
-	let color;
-	if (t === 0 || t === this.tasks.length - 1) {
-		color = '#D6D6D6';
-	} else {
-		color = taskColors[t] || taskColors[taskColors.length - 1];
-	}
+		const taskColors = [
+			'#D6D6D6',
+			'#F0F8FF',
+			'#F0F8FF',
+			'#F0F8FF',
+			'#FFDEAD',
+			'#FFDEAD',
+			'#FFDEAD',
+			'#DEB887',
+			'#DEB887',
+			'#DEB887',
+			'#9AFF9A',
+			'#9AFF9A',
+			'#9AFF9A',
+			'#9AFF9A',
+			'#FFBBFF',
+			'#FFBBFF',
+			'#FFBBFF',
+			'#D3D3D3'
+		];
+		for (let t = 0; t < this.tasks.length; t++) {
+			if (!this.tasks[t] || !this.tasks[t].fileContent) {
+				continue;
+			}
+			let color;
+			if (t === 0 || t === this.tasks.length - 1) {
+				color = '#D6D6D6';
+			} else {
+				color = taskColors[t] || taskColors[taskColors.length - 1];
+			}
 
-	// todo fixme use filenameify or whatever it's called
-	const taskFileName = `${basename}-${this.tasks[t].title.replace(/\//g, '-').replace(/\\/g, '-')}.yml`;
-	const taskFilePath = path.join(tasksDir, taskFileName);
-	fs.writeFileSync(taskFilePath, this.tasks[t].fileContent);
-	procedure += `
+			// todo fixme use filenameify or whatever it's called
+			const taskFileName = `${this.basename}-${this.tasks[t].title.replace(/\//g, '-').replace(/\\/g, '-')}.yml`;
+			const taskFilePath = path.join(this.tasksDir, taskFileName);
+			fs.writeFileSync(taskFilePath, this.tasks[t].fileContent);
+			procedure += `
   - file: ${taskFileName}
     roles:
       crewA: EV1
@@ -584,10 +578,12 @@ for (let t = 0; t < this.tasks.length; t++) {
     color: "${color}"
 `;
 
-}
+		}
 
-fs.writeFileSync(path.join(procsDir, `${basename}.yml`), procedure);
-console.log(`empty lines = ${this.emptyLines}, non-empty = ${this.nonEmptyLines}`);
-console.log('complete!');
+		fs.writeFileSync(path.join(this.procsDir, `${this.basename}.yml`), procedure);
+		console.log(`empty lines = ${this.emptyLines}, non-empty = ${this.nonEmptyLines}`);
+		console.log('complete!');
+
+	}
 
 };

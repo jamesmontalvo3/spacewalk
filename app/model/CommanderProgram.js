@@ -12,6 +12,7 @@ const SodfDocxProcedureWriter = require('../writer/procedure/SodfDocxProcedureWr
 const IpvXmlProcedureWriter = require('../writer/procedure/IpvXmlProcedureWriter');
 const EvaHtmlProcedureWriter = require('../writer/procedure/EvaHtmlProcedureWriter');
 const IpvXmlTranscriber = require('../transcriber/IpvXmlTranscriber');
+const EvaHtmlTranscriber = require('../transcriber/EvaHtmlTranscriber');
 
 const Server = require('../web/Server');
 
@@ -100,7 +101,7 @@ module.exports = class CommanderProgram extends Program {
 		];
 
 		this.transcribeInputTypes = [
-			{ option: 'eva-docx', desc: 'Convert EVA .docx to maestro yaml', prop: 'evaDocx' },
+			{ option: 'eva-html', desc: 'Convert EVA html to maestro yaml', prop: 'evaHtml' },
 			{ option: 'ipv-xml', desc: 'Convert IPV XML to maestro yaml', prop: 'ipvXml' }
 		];
 
@@ -196,7 +197,7 @@ module.exports = class CommanderProgram extends Program {
 		}
 
 		if (!anyTrue) {
-			this.evaDocx = true; // default if nothing is selected
+			this.evaHtml = true; // default if nothing is selected
 		}
 
 	}
@@ -250,6 +251,7 @@ module.exports = class CommanderProgram extends Program {
 			console.log("No input file given. '-i, --input <name of file to transcribe>'");
 			process.exit();
 		}
+
 	}
 
 	doCompose() {
@@ -333,11 +335,9 @@ module.exports = class CommanderProgram extends Program {
 
 		console.log(`Generating maestro yaml from ${this.inputFile}`);
 
-		if (this.evaDocx) {
-			console.log('this is the eva transcriber');
+		if (this.evaHtml) {
 
-			// const eva = new EvaDocxProcedureWriter(this, procedure);
-			this.transcribeBasicFormat(this.inputFile, EvaDocXTranscriber, 'EVA DOCX', 'docx');
+			this.transcribeBasicFormat(this.inputFile, EvaHtmlTranscriber, 'EVA HTML', 'html');
 		}
 
 		if (this.ipvXml) {
