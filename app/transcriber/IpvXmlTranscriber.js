@@ -97,8 +97,8 @@ function parseTools(element, indent, outPut = '') {
 				comment: sanatizeInput($(element).children('comment'))
 			};
 
-			outPut += `${indent}- toolName: ${sanatizeInput($(element).children('toolsitemname'))}\n`;
-			outPut += `${indent}  partNumber: "${sanatizeInput($(element).children('partnumber'))}"\n`;
+outPut += `${indent}- toolName: ${sanatizeInput($(element).children('toolsitemname'))}\n`;
+outPut += `${indent}  partNumber: "${sanatizeInput($(element).children('partnumber'))}"\n`;
 			outPut += `${indent}  quantity: "${sanatizeInput($(element).children('quantity'))}"\n`;
 			outPut += `${indent}  comment: '${sanatizeInput($(element).children('comment'))}'\n`;
 		} else if (compareTag(element, 'containeritem', 'includes')) {
@@ -108,7 +108,7 @@ function parseTools(element, indent, outPut = '') {
 				containerName: $(element).children('containeritem').text().trim(),
 				containerContents: ''
 			};
-			outPut += `${indent}- containerName: ${$(element).children('containeritem').text().trim()}\n`;
+	outPut += `${indent}- containerName: ${$(element).children('containeritem').text().trim()}\n`;
 			outPut += `${indent}  containerContents:\n`;
 		} else {
 			toolsOutput[index] = '';
@@ -344,12 +344,15 @@ function getToolsPartsMarterials() {
 				throw err;
 			}
 			files.forEach((file) => {
-				fs.rename(path.join(this.ipvSourceImageDir, file), path.join(this.imagesDir, file), (err) => {
-					if (err) {
-						throw err;
-					}
+				fs.rename(
+					path.join(this.ipvSourceImageDir, file),
+					path.join(this.imagesDir, file),
+					(err) => {
+						if (err) {
+							throw err;
+						}
 
-				});
+					});
 
 			});
 

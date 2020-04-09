@@ -65,7 +65,8 @@ module.exports = class EvaHtmlTranscriber {
 	}
 
 	/**
-	 * Take an array comprising the three rows of the procedure, and process it into one or more 'simo'
+	 * Take an array comprising the three rows of the procedure,
+	 * and process it into one or more 'simo'
 	 * blocks
 	 * @param  {[Array]} rowArray  Array of the form [[col,0,steps], [col,1,steps], [col,2,steps]]
 	 * @param  {*} actorKeys       TBD
@@ -115,10 +116,11 @@ module.exports = class EvaHtmlTranscriber {
 
 	createSyncedSimoBlocks(rowArray, actorKeys) {
 
-		// Don't allow the simo block to have more than this many consecutive steps for a single actor,
-		// due to an issue with Word or the npm docx library. Rows are set not to break across a page,
-		// but if a row is bigger than one page it _must_ break across a page and currently it does not.
-		// Instead, it just disappears beyond the length of the page.
+		// Don't allow the simo block to have more than this many consecutive
+		// steps for a single actor, due to an issue with Word or the npm docx
+		// library. Rows are set not to break across a page, but if a row is
+		// bigger than one page it _must_ break across a page and currently
+		// it does not. Instead, it just disappears beyond the length of the page.
 		const maxBlockLength = 20;
 
 		// how many empty lines together to consider it a cluster requiring a sync point
@@ -289,8 +291,7 @@ module.exports = class EvaHtmlTranscriber {
 			.replace(/ß/g, '{{LEFT}}')
 
 		// FIXME
-		// FIXME ALL these replaces should use regex /thingToReplace/g to replace multiple occurences
-		// FIXME
+		// ALL these replaces should use regex /thingToReplace/g to replace multiple occurences
 
 		// .replace('�', '')
 		// .replace('�', '')
@@ -508,7 +509,12 @@ ${steps}
 					minutesByColId = { crewA: 30, crewB: 30 };
 				}
 				this.tasks[t] = {
-					fileContent: this.getTaskHeader(title, taskText, minutesByColId.crewA, minutesByColId.crewB),
+					fileContent: this.getTaskHeader(
+						title,
+						taskText,
+						minutesByColId.crewA,
+						minutesByColId.crewB
+					),
 					title: title
 				};
 			}
