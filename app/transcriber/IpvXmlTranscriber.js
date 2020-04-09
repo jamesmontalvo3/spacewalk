@@ -27,7 +27,7 @@ module.exports = class IpvXmlTranscriber {
 
 	/**
 	 * Returns cleaned up text from given object
-	 * @param {Object} input object to obtain clean text from
+	 * @param {string} input object to obtain clean text from
 	 * @return {string}      sanatized text
 	 */
 	sanatizeInput(input) {
@@ -53,21 +53,22 @@ module.exports = class IpvXmlTranscriber {
 
 	/**
 	 * parse trhough itemized list tags (location, duration, crew)
-	 * @param  {Array} input     array of itemized list items
-	 * @return {string}          yaml markup for location, duration, crew,
+	 * @param  {string} input     array of itemized list items
+	 * @return {Array}          yaml markup for location, duration, crew,
 	 *                           ref procedures
 	 */
 	getItemizedList(input) {
 		const outPut = [];
-		$('itemizedlist').each(function(index, element) {
+		$('itemizedlist').each((index, element) => {
 			const listTitle = this.sanatizeInput($(element).find('listtitle'))
 				.replace(':', '')
 				.replace(' ', '')
 				.replace('(', '')
 				.replace(')', '')
 				.toLowerCase();
+
 			if (listTitle === input) {
-				$(element).children('para').each(function(index, element) {
+				$(element).children('para').each((index, element) => {
 					outPut.push(this.sanatizeInput($(element)));
 				});
 			}
@@ -151,7 +152,7 @@ function getToolsPartsMarterials() {
 	getImages(element) {
 		let imageYaml = {};
 
-		$(element).children('image').each(function(index, element) {
+		$(element).children('image').each((index, element) => {
 			imageYaml = [{
 				path: $(element).find('imagereference').attr('source').replace(/(.*)\//, ''),
 				text: this.sanatizeInput($(element).find('imagetitle > text')),
@@ -203,6 +204,7 @@ function getToolsPartsMarterials() {
 				roles: { IV1: 'IV' }
 			}]
 		};
+		console.log('is this running');
 		return yaml.safeDump(outPut);
 	}
 
@@ -213,7 +215,7 @@ function getToolsPartsMarterials() {
 	 */
 	replaceFigureCalls(instructionElement) {
 		let textToReturn = '';
-		$(instructionElement).find('ReferenceInfo').each(function(index, referenceElement) {
+		$(instructionElement).find('ReferenceInfo').each((index, referenceElement) => {
 			if (referenceElement) {
 			// FIXME ref links point to PDFs, not actual images would make sense to point to images.
 				const hyperlinkTarget = $(referenceElement).find('Hyperlink').attr('target');
@@ -242,7 +244,7 @@ function getToolsPartsMarterials() {
 	buildStepFromElement(givenElement) {
 		const steps = [];
 		let currentComponent = {};
-		$(givenElement).children().each(function(index, currentElement) {
+		$(givenElement).children().each((index, currentElement) => {
 
 			if (this.compareTag(currentElement, 'steptitle')) {
 				const instructionText = this.replaceFigureCalls($(currentElement).find('instruction'));
@@ -278,7 +280,7 @@ function getToolsPartsMarterials() {
 			if (this.compareTag(currentElement, 'clarifyinginfo')) {
 				const ncwType = $(currentElement).attr('infoType');
 				currentComponent[ncwType] = currentComponent[ncwType] || [];
-				$(currentElement).children('infotext').each(function(index, ncwText) {
+				$(currentElement).children('infotext').each((index, ncwText) => {
 					currentComponent[ncwType].push(this.sanatizeInput($(ncwText)));
 				});
 			}
@@ -332,16 +334,16 @@ function getToolsPartsMarterials() {
 		if (!fs.existsSync(this.procsDir)) {
 			fs.mkdirSync(this.procsDir);
 		}
-		if (!fs.existsSync(this.procsDir)) {
+		if (!fs.existsSync(this.imagesDir)) {
 			fs.mkdirSync(this.imagesDir);
 		}
 
 		// Read file directory from xml zip file and move images to patify image folder
-		fs.readdir(this.ipvSourceImageDir, function(err, files) {
+		fs.readdir(this.ipvSourceImageDir, (err, files) =>{
 			if (err) {
 				throw err;
 			}
-			files.forEach(function(file) {
+			files.forEach((file) => {
 				fs.rename(path.join(this.ipvSourceImageDir, file), path.join(this.imagesDir, file), (err) => {
 					if (err) {
 						throw err;
@@ -385,19 +387,19 @@ function getToolsPartsMarterials() {
 	 * Converts XML symbol tags to Maestro tags
 	 */
 	symbolCleanup() {
-		$('VerifyCallout').each(function(index, element) {
+		$('VerifyCallout').each((index, element) => {
 			const verifyType = $(element).attr('verifyType').toUpperCase();
 			const verifyParent = $(element).parent();
 			$(verifyParent).prepend(`<text>{{${verifyType}}}</text>`);
 		});
 
-		$('Symbol').each(function(index, element) {
+		$('Symbol').each((index, element) => {
 			const symbolType = $(element).attr('name');
 			const maestroSymbol = odfSymbols.odfToMaestro(symbolType);
 			$(element).prepend(`<text>${maestroSymbol}</text>`);
 		});
 
-		$('verifyoperator').each(function(index, element) {
+		$('verifyoperator').each((index, element) => {
 			const symbolType = $(element).attr('operator').toUpperCase();
 			$(element).prepend(`<text>{{${symbolType}}}</text>`);
 		});
@@ -405,6 +407,10 @@ function getToolsPartsMarterials() {
 	}
 
 	transcribe() {
+		console.log('IPV FILE DIRECTORY: ', this.ipvFileDir);
+		console.log('BASENAME: ', this.basename);
+		console.log('IPV SOURCE IMAGE DIR: ', this.ipvSourceImageDir);
+
 		this.buildDirectory();
 		this.symbolCleanup();
 		// write procedure file

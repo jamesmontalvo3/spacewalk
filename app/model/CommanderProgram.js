@@ -135,7 +135,7 @@ module.exports = class CommanderProgram extends Program {
 			.command('transcribe [projectPath]')
 			.description('Convert files to a Maestro project')
 			.option(
-				'--input',
+				'-i, --input <name of file to transcribe>',
 				'specify file to be transcribed',
 				null
 			);
@@ -146,6 +146,7 @@ module.exports = class CommanderProgram extends Program {
 
 		transcribe.action((projectPath, options) => {
 			this.prepTranscribeArguments(projectPath, options);
+			this.validateTranscribeArguments();
 			this.doTranscribe();
 		});
 
@@ -181,11 +182,8 @@ module.exports = class CommanderProgram extends Program {
 
 	prepTranscribeArguments(projectPath, options) {
 		this.projectPath = handleProjectPath(projectPath);
+		this.inputFile = options.input;
 		let anyTrue = false;
-
-		for (const entry in options.commands) {
-			console.log('printing this out: ', entry);
-		}
 
 		for (const it of this.transcribeInputTypes) {
 			// map options inputs to program properties
@@ -246,6 +244,14 @@ module.exports = class CommanderProgram extends Program {
 
 	}
 
+	validateTranscribeArguments() {
+		// User must provide input
+		if (!this.inputFile) {
+			console.log("No input file given. '-i, --input <name of file to transcribe>'");
+			process.exit();
+		}
+	}
+
 	doCompose() {
 		fs.readdir(this.proceduresPath, (err, files) => {
 			if (err) {
@@ -303,7 +309,7 @@ module.exports = class CommanderProgram extends Program {
 
 	renderBasicFormat(procedure, WriterClass, formatName, extension) {
 		console.log(`Creating ${formatName} format`);
-		const writer = new WriterClass(this, procedure);
+		const writer = new WriterClass(procedure);
 		writer.renderIntro();
 		writer.renderTasks();
 
@@ -325,21 +331,18 @@ module.exports = class CommanderProgram extends Program {
 
 	transcribeProcedureFormats() {
 
-		// FIXME not getting input file name passed in using --input, thought it would be something like
-		// this.input, or transcribe this.transcribe.input, or commander.input
-		console.log(`Generating maestro yaml from ${this.transcribe.input}`);
+		console.log(`Generating maestro yaml from ${this.inputFile}`);
 
 		if (this.evaDocx) {
 			console.log('this is the eva transcriber');
 
 			// const eva = new EvaDocxProcedureWriter(this, procedure);
+			this.transcribeBasicFormat(this.inputFile, EvaDocXTranscriber, 'EVA DOCX', 'docx');
 		}
 
 		if (this.ipvXml) {
 			// Run IpvXmlTranscriber
-			console.log('this is the IPV transcriber');
-			console.log('input :', this.commander.input);
-			this.transcribeBasicFormat(this.commander.input, IpvXmlTranscriber, 'IPV XML', 'xml');
+			this.transcribeBasicFormat(this.inputFile, IpvXmlTranscriber, 'IPV XML', 'xml');
 		}
 
 	}
@@ -347,8 +350,6 @@ module.exports = class CommanderProgram extends Program {
 	transcribeBasicFormat(file, WriterClass, formatName) {
 		console.log(`Transcribing yaml from ${formatName} format`);
 		const writer = new WriterClass(file);
-		writer.buildDirectory();
-		writer.symbolCleanup();
 		writer.transcribe();
 	}
 
