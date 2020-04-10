@@ -9,6 +9,7 @@ const AdmZip = require('adm-zip');
 const yaml = require('js-yaml');
 const odfSymbols = require('./odfSymbolMap.js');
 var $;
+var currentComponent = {};
 
 module.exports = class IpvXmlTranscriber {
 	constructor(file) {
@@ -236,44 +237,66 @@ function getToolsPartsMarterials() {
 	}
 
 	/**
+	 * Builds step yaml from xml object
+	 * @param {Object} currentElement current selected XML element
+	 * @return {string}
+	 */
+	addstepTitle(currentElement) {
+		let steps = '';
+		const instructionText = this.replaceFigureCalls($(currentElement).find('instruction'));
+		const titleText = this.sanatizeInput($(currentElement).children('text'));
+		if (instructionText) {
+			if (!currentComponent.text) {
+				currentComponent.text = [];
+			}
+			currentComponent.text.push(instructionText);
+		}
+		if (titleText.length > 0) {
+			if (Object.keys(currentComponent).length > 0) {
+				steps = currentComponent;
+				currentComponent = {};
+			}
+			currentComponent.title = titleText;
+		}
+
+		return steps;
+
+	}
+
+	/**
+	 * Pushes step yaml to currentComponent var from xml object
+	 * @param {Object} currentElement current selected XML element
+	 */
+	addstepContent(currentElement) {
+		const instruction = this.replaceFigureCalls($(currentElement).find('instruction'));
+		const image = this.sanatizeInput($(currentElement).find('image'));
+		if (instruction.length > 0) {
+			currentComponent.text = currentComponent.text || [];
+			currentComponent.text.push(instruction);
+		}
+		if (image) {
+			currentComponent.images = currentComponent.images || [];
+			currentComponent.images.push(...this.getImages(currentElement));
+		}
+
+	}
+
+	/**
  * Builds yaml step output from xml element
  * @param {Object} givenElement  xml tag with step content
  * @return {string}         yaml output
  */
 	buildStepFromElement(givenElement) {
 		const steps = [];
-		let currentComponent = {};
+
 		$(givenElement).children().each((index, currentElement) => {
 
 			if (this.compareTag(currentElement, 'steptitle')) {
-				const instructionText = this.replaceFigureCalls($(currentElement).find('instruction'));
-				const titleText = this.sanatizeInput($(currentElement).children('text'));
-				if (instructionText) {
-					if (!currentComponent.text) {
-						currentComponent.text = [];
-					}
-					currentComponent.text.push(instructionText);
-				}
-				if (titleText.length > 0) {
-					if (Object.keys(currentComponent).length > 0) {
-						steps.push(currentComponent);
-						currentComponent = {};
-					}
-					currentComponent.title = titleText;
-				}
+				steps.push(this.addStepTitle());
 			}
 
 			if (this.compareTag(currentElement, 'stepcontent')) {
-				const instruction = this.replaceFigureCalls($(currentElement).find('instruction'));
-				const image = this.sanatizeInput($(currentElement).find('image'));
-				if (instruction.length > 0) {
-					currentComponent.text = currentComponent.text || [];
-					currentComponent.text.push(instruction);
-				}
-				if (image) {
-					currentComponent.images = currentComponent.images || [];
-					currentComponent.images.push(...this.getImages(currentElement));
-				}
+				this.addstepContent();
 			}
 
 			if (this.compareTag(currentElement, 'clarifyinginfo')) {
@@ -322,6 +345,38 @@ function getToolsPartsMarterials() {
 	}
 
 	/**
+	 * Validates input passed to maestro compose command
+	 */
+
+	validateInput() {
+		if (!['.xml'].includes(path.extname(this.ipvFile))) {
+			// Should perform more specific test to check xml is using IPV format
+			console.error(`${this.ipvFile} does not appear to be an XML file`);
+			process.exit(1);
+		}
+
+		// Checks if file path exists
+		if (!fs.existsSync(this.ipvFile)) {
+			console.error(`${this.ipvFile} is not a valid file`);
+			process.exit(1);
+		}
+
+		try {
+			console.log('Loading XML');
+			$ = cheerio.load(
+				fs.readFileSync(this.ipvFile),
+				{
+					xmlMode: true,
+					lowerCaseTags: true
+				}
+			);
+			console.log('XML loaded');
+		} catch (err) {
+			throw new Error(err);
+		}
+	}
+
+	/**
 	 * Builds maestro directories
 	 */
 	buildDirectory() {
@@ -357,31 +412,7 @@ function getToolsPartsMarterials() {
 
 		});
 
-		if (!['.xml'].includes(path.extname(this.ipvFile))) {
-			// Should perform more specific test to check xml is using IPV format
-			console.error(`${this.ipvFile} does not appear to be an XML file`);
-			process.exit(1);
-		}
-
-		// Checks if file path exists
-		if (!fs.existsSync(this.ipvFile)) {
-			console.error(`${this.ipvFile} is not a valid file`);
-			process.exit(1);
-		}
-
-		try {
-			console.log('Loading XML');
-			$ = cheerio.load(
-				fs.readFileSync(this.ipvFile),
-				{
-					xmlMode: true,
-					lowerCaseTags: true
-				}
-			);
-			console.log('XML loaded');
-		} catch (err) {
-			throw new Error(err);
-		}
+		this.validateInput();
 
 	}
 
