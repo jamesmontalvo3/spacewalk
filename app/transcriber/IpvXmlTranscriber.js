@@ -80,69 +80,74 @@ module.exports = class IpvXmlTranscriber {
 	}
 
 	/**
- *
- * @param {Object} element tools, parts, or materials object
- * @param {string} indent  current yaml indent for output
- * @param {string} outPut  yaml output
- * @return {string}        yaml output
- */
+	 *
+	 * @param {Object} element tools, parts, or materials object
+	 * @param {string} indent  current yaml indent for output
+	 * @param {string} outPut  yaml output
+	 * @return {string}        yaml output
+	 */
 	/*
-function parseTools(element, indent, outPut = '') {
-	const toolsOutput = [];
-	$(element).children().each(function(index, element) {
-		if (compareTag(element, 'toolsitem')) {
-			toolsOutput[index] = {
-				toolName: sanatizeInput($(element).children('toolsitemname')),
-				partNumber: sanatizeInput($(element).children('partnumber')),
-				quantity: sanatizeInput($(element).children('quantity')),
-				comment: sanatizeInput($(element).children('comment'))
-			};
+	function parseTools(element, indent, outPut = '') {
+		const toolsOutput = [];
+		$(element).children().each(function(index, element) {
+			if (compareTag(element, 'toolsitem')) {
+				toolsOutput[index] = {
+					toolName: sanatizeInput($(element).children('toolsitemname')),
+					partNumber: sanatizeInput($(element).children('partnumber')),
+					quantity: sanatizeInput($(element).children('quantity')),
+					comment: sanatizeInput($(element).children('comment'))
+				};
 
-outPut += `${indent}- toolName: ${sanatizeInput($(element).children('toolsitemname'))}\n`;
-outPut += `${indent}  partNumber: "${sanatizeInput($(element).children('partnumber'))}"\n`;
-			outPut += `${indent}  quantity: "${sanatizeInput($(element).children('quantity'))}"\n`;
-			outPut += `${indent}  comment: '${sanatizeInput($(element).children('comment'))}'\n`;
-		} else if (compareTag(element, 'containeritem', 'includes')) {
-			return;
-		} else if (compareTag(element, 'container', 'includes')) {
-			toolsOutput[index] = {
-				containerName: $(element).children('containeritem').text().trim(),
-				containerContents: ''
-			};
-	outPut += `${indent}- containerName: ${$(element).children('containeritem').text().trim()}\n`;
-			outPut += `${indent}  containerContents:\n`;
-		} else {
-			toolsOutput[index] = '';
-		}
+				outPut +=
+					`${indent}- toolName: ${sanatizeInput($(element).children('toolsitemname'))}\n`;
+				outPut +=
+				`${indent}  partNumber: "${sanatizeInput($(element).children('partnumber'))}"\n`;
+				outPut +=
+					`${indent}  quantity: "${sanatizeInput($(element).children('quantity'))}"\n`;
+				outPut +=
+					`${indent}  comment: '${sanatizeInput($(element).children('comment'))}'\n`;
+			} else if (compareTag(element, 'containeritem', 'includes')) {
+				return;
+			} else if (compareTag(element, 'container', 'includes')) {
+				toolsOutput[index] = {
+					containerName: $(element).children('containeritem').text().trim(),
+					containerContents: ''
+				};
+				outPut +=
+				`${indent}- containerName: ${$(element).children('containeritem').text().trim()}\n`;
+				outPut += `${indent}  containerContents:\n`;
+			} else {
+				toolsOutput[index] = '';
+			}
 
-		// parseTools(element, indent + '  ');
-	});
-	// console.log(toolsOutput);
-	// console.log(yaml.safeDump(toolsOutput));
+			// parseTools(element, indent + '  ');
+		});
+		// console.log(toolsOutput);
+		// console.log(yaml.safeDump(toolsOutput));
 
-	return outPut;
+		return outPut;
 
-}
-*/
+	}
+	*/
 
 	/**
- * Runs parseTools for tools, parts, materials section
- * @return {string}     yaml output
- */
+	 * Runs parseTools for tools, parts, materials section
+	 * @return {string}     yaml output
+	 */
 	/*
-function getToolsPartsMarterials() {
-	let outPut = '';
-	const sectionList = ['parts', 'materials', 'tools'];
-	sectionList.forEach((element) => {
+	function getToolsPartsMarterials() {
+		let outPut = '';
+		const sectionList = ['parts', 'materials', 'tools'];
+		sectionList.forEach((element) => {
 
-		outPut += `${element}:\n`;
-		outPut += parseTools(element, '  ');
+			outPut += `${element}:\n`;
+			outPut += parseTools(element, '  ');
 
-	});
+		});
 
-	return outPut;
-}
-*/
+		return outPut;
+	}
+	*/
 
 	/**
 	 * retrieves yaml output for an image
@@ -168,12 +173,12 @@ function getToolsPartsMarterials() {
 	}
 
 	/**
- * retrieves header content of procedure
- * @return {string}  procedure header yaml
- */
+	 * retrieves header content of procedure
+	 * @return {string}  procedure header yaml
+	 */
 	getProcHeader() {
 		const outPut = {
-		// eslint-disable-next-line camelcase
+			// eslint-disable-next-line camelcase
 			procedure_name: $('proctitle > text').text().trim(),
 			ipvFields: {
 				procNumber: $('proctitle > procnumber').text().trim(),
@@ -237,6 +242,7 @@ function getToolsPartsMarterials() {
 	}
 
 	/**
+<<<<<<< HEAD
 	 * Builds step yaml from xml object
 	 * @param {Object} currentElement current selected XML element
 	 * @return {string}
