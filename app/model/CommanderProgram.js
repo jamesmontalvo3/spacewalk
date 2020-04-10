@@ -11,6 +11,8 @@ const EvaDocxProcedureWriter = require('../writer/procedure/EvaDocxProcedureWrit
 const SodfDocxProcedureWriter = require('../writer/procedure/SodfDocxProcedureWriter');
 const IpvXmlProcedureWriter = require('../writer/procedure/IpvXmlProcedureWriter');
 const EvaHtmlProcedureWriter = require('../writer/procedure/EvaHtmlProcedureWriter');
+const IpvXmlTranscriber = require('../transcriber/IpvXmlTranscriber');
+const EvaHtmlTranscriber = require('../transcriber/EvaHtmlTranscriber');
 
 const Server = require('../web/Server');
 
@@ -98,6 +100,11 @@ module.exports = class CommanderProgram extends Program {
 			{ option: 'ipv-xml', desc: 'Generate IPV compatible XML output', prop: 'ipvXml' }
 		];
 
+		this.transcriberFormatsMap = {
+			'.zip': IpvXmlTranscriber,
+			'.htm': EvaHtmlTranscriber
+		};
+
 	}
 
 	/**
@@ -124,6 +131,20 @@ module.exports = class CommanderProgram extends Program {
 			this.validateProgramArguments();
 			this.doCompose();
 		});
+
+		this.commander
+			.command('transcribe [projectPath]')
+			.description('Convert files to a Maestro project')
+			.option(
+				'-i, --input <name of file to transcribe>',
+				'specify file to be transcribed',
+				null
+			)
+			.action((projectPath, options) => {
+				this.prepTranscribeArguments(projectPath, options);
+				this.validateTranscribeArguments();
+				this.doTranscribe();
+			});
 
 		this.commander
 			.command('conduct [projectPath]')
@@ -153,6 +174,11 @@ module.exports = class CommanderProgram extends Program {
 		if (!anyTrue) {
 			this.evaDocx = true; // default if nothing is selected
 		}
+	}
+
+	prepTranscribeArguments(projectPath, options) {
+		this.projectPath = handleProjectPath(projectPath);
+		this.inputFile = options.input;
 	}
 
 	/**
@@ -198,6 +224,29 @@ module.exports = class CommanderProgram extends Program {
 
 	}
 
+	validateTranscribeArguments() {
+		// User must provide input
+		if (!this.inputFile) {
+			console.log("No input file given. '-i, --input <name of file to transcribe>'");
+			process.exit();
+		}
+
+		if (!(path.extname(this.inputFile) in this.transcriberFormatsMap)) {
+			console.log('Invalid file type choosen. The following file types are valid');
+			for (const filetype in this.transcriberFormatsMap) {
+				console.log(filetype);
+			}
+			process.exit();
+		}
+
+		//  If this process can't write to the output location, emit an error and quit
+		if (!canWrite(this.projectPath)) {
+			console.error(`Can't write to output location: ${this.projectPath}`);
+			process.exit();
+		}
+
+	}
+
 	doCompose() {
 		fs.readdir(this.proceduresPath, (err, files) => {
 			if (err) {
@@ -208,6 +257,10 @@ module.exports = class CommanderProgram extends Program {
 				this.generateProcedureFormats(file);
 			}
 		});
+	}
+
+	doTranscribe() {
+		this.transcribeProcedureFormats();
 	}
 
 	generateProcedureFormats(file) {
@@ -269,6 +322,19 @@ module.exports = class CommanderProgram extends Program {
 			);
 		}
 		writer.writeFile(writeFileLocation);
+	}
+
+	transcribeProcedureFormats() {
+		console.log(`Generating maestro yaml from ${this.inputFile}`);
+
+		this.transcribeBasicFormat(this.projectPath, this.inputFile, this.transcriberFormatsMap[path.extname(this.inputFile)], 'EVA HTML', 'html');
+
+	}
+
+	transcribeBasicFormat(projectPath, file, WriterClass, formatName) {
+		console.log(`Transcribing yaml from ${formatName} format`);
+		const writer = new WriterClass(projectPath, file);
+		writer.transcribe();
 	}
 
 	serveMaestroWeb(projectPath, options) {
