@@ -74,41 +74,22 @@ module.exports = class EvaHtmlTranscriber {
 	 */
 	createSimoBlocks(rowArray, actorKeys) {
 
-		/**
-		 * const actorKeys = [
-		 *  '      IV:\n',
-		 *  '      crewA:\n',
-		 *  '      crewB:\n'
-		 * ];
-		 */
-		let rowYamlText;
+		let rowYamlText = '';
 
-		// todo side effects from this?
-		if (actorKeys.reduce(
-			(acc, cur) => {
-				return cur.indexOf('+') > -1 ? true : acc;
-			}, false)) {
-
-			// var hasJointActors = true;
+		for (let i = 0; i < rowArray.length; i++) {
+			let actorStepsAdded = '';
+			for (const line of rowArray[i]) {
+				actorStepsAdded += line || '';
+			}
+			if (actorStepsAdded !== '') {
+				// todo handle difference between actorKeys.length and rowArray.length
+				rowYamlText += actorKeys[i] + actorStepsAdded;
+			}
 		}
 
-		if (rowArray[0].length > 0 || rowArray[1].length > 0 || rowArray[2].length > 0) {
-			rowYamlText = '  - simo:\n\n';
-			for (let i = 0; i < rowArray.length; i++) {
-				if (rowArray[i].length > 0) {
-					let actorStepsAdded = '';
-					for (const line of rowArray[i]) {
-						if (line !== false) {
-							actorStepsAdded += line;
-						}
-					}
-					if (actorStepsAdded !== '') {
-						rowYamlText += actorKeys[i] + actorStepsAdded;
-					}
-				}
-			}
-		} else {
-			rowYamlText = '';
+		// if rowYamlText not empty, it should begin with a simo block
+		if (rowYamlText !== '') {
+			rowYamlText = '  - simo:\n\n' + rowYamlText;
 		}
 
 		return rowYamlText;
@@ -131,11 +112,8 @@ module.exports = class EvaHtmlTranscriber {
 		});
 
 		let index = 0;
-		// const somethingelse = [0, 0, 0];
 		let keepRowing = true;
-
 		let output = '';
-
 		let consecBlanks,
 			nextBlock;
 
@@ -159,72 +137,47 @@ module.exports = class EvaHtmlTranscriber {
 		reset();
 
 		while (keepRowing) {
-			const iv = rowArray[0][index];
-			const ev1 = rowArray[1][index];
-			const ev2 = rowArray[2][index];
+			const current = {
+				iv: rowArray[0][index],
+				ev1: rowArray[1][index],
+				ev2: rowArray[2][index]
+			};
+			const actors = Object.keys(current);
 
-			// const current = [
-			// rowArray[0][index],
-			// rowArray[1][index],
-			// rowArray[2][index]
-			// ];
+			const next = {
+				iv: rowArray[0][index + 1],
+				ev1: rowArray[1][index + 1],
+				ev2: rowArray[2][index + 1]
+			};
 
-			const next = [
-				rowArray[0][index + 1],
-				rowArray[1][index + 1],
-				rowArray[2][index + 1]
-			];
+			const nextStepContainsSubstep =
+				stepIsSubstep(next.iv) || stepIsSubstep(next.ev1) || stepIsSubstep(next.ev2);
 
-			let nextStepContainsSubstep;
-			if (stepIsSubstep(next[0]) || stepIsSubstep(next[1]) || stepIsSubstep(next[2])) {
-				nextStepContainsSubstep = true;
-			} else {
-				nextStepContainsSubstep = false;
+			// Push to next block
+			for (let i = 0; i < actors.length; i++) {
+				const actor = actors[i];
+				const step = current[actor];
+
+				if (validStep(step)) {
+					nextBlock[i].push(step);
+					consecBlanks[i] = 0;
+				} else {
+					consecBlanks[i]++;
+				}
 			}
 
-			if (validStep(iv)) {
-				nextBlock[0].push(iv);
-				consecBlanks[0] = 0;
-			} else {
-				consecBlanks[0]++;
-			}
+			// When appropriate, push next block to output and reset
+			for (let i = 0; i < actors.length; i++) {
+				const actor = actors[i];
 
-			if (validStep(ev1)) {
-				nextBlock[1].push(ev1);
-				consecBlanks[1] = 0;
-			} else {
-				consecBlanks[1]++;
-			}
+				if (
+					consecBlanks[i] > emptyLineClusterSize && validStep(next[actor]) &&
+					!nextStepContainsSubstep
+				) {
+					output += this.createSimoBlocks(nextBlock, actorKeys);
+					reset();
+				}
 
-			if (validStep(ev2)) {
-				nextBlock[2].push(ev2);
-				consecBlanks[2] = 0;
-			} else {
-				consecBlanks[2]++;
-			}
-
-			if (
-				consecBlanks[0] > emptyLineClusterSize && validStep(rowArray[0][index + 1]) &&
-				!nextStepContainsSubstep
-			) {
-				output += this.createSimoBlocks(nextBlock, actorKeys);
-				reset();
-			}
-
-			if (
-				consecBlanks[1] > emptyLineClusterSize && validStep(rowArray[1][index + 1]) &&
-				!nextStepContainsSubstep
-			) {
-				output += this.createSimoBlocks(nextBlock, actorKeys);
-				reset();
-			}
-
-			if (
-				consecBlanks[2] > emptyLineClusterSize && validStep(rowArray[2][index + 1]) &&
-				!nextStepContainsSubstep
-			) {
-				output += this.createSimoBlocks(nextBlock, actorKeys);
-				reset();
 			}
 
 			const longest = nextBlock.reduce(
