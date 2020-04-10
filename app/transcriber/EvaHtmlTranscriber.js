@@ -9,13 +9,12 @@ var $;
 
 module.exports = class EvaHtmlTranscriber {
 
-	constructor(file) {
+	constructor(projectPath, file) {
 		this.htmlFile = path.join(process.cwd(), file);
 		this.htmlFileDir = path.dirname(this.htmlFile);
-		this.projectDir = path.dirname(this.htmlFile);
-		this.tasksDir = path.join(this.projectDir, 'tasks'); // should be called activityDir need to fix when merging
-		this.procsDir = path.join(this.projectDir, 'procedures');
-		this.imagesDir = path.join(this.projectDir, 'images');
+		this.tasksDir = path.join(projectPath, 'tasks'); // should be called activityDir need to fix when merging
+		this.procsDir = path.join(projectPath, 'procedures');
+		this.imagesDir = path.join(projectPath, 'images');
 		this.emptyLines = 0;
 		this.nonEmptyLines = 0;
 		this.wasCheckboxList = false;
