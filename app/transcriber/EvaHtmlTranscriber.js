@@ -74,41 +74,22 @@ module.exports = class EvaHtmlTranscriber {
 	 */
 	createSimoBlocks(rowArray, actorKeys) {
 
-		/**
-		 * const actorKeys = [
-		 *  '      IV:\n',
-		 *  '      crewA:\n',
-		 *  '      crewB:\n'
-		 * ];
-		 */
-		let rowYamlText;
+		let rowYamlText = '';
 
-		// todo side effects from this?
-		if (actorKeys.reduce(
-			(acc, cur) => {
-				return cur.indexOf('+') > -1 ? true : acc;
-			}, false)) {
-
-			// var hasJointActors = true;
+		for (let i = 0; i < rowArray.length; i++) {
+			let actorStepsAdded = '';
+			for (const line of rowArray[i]) {
+				actorStepsAdded += line || '';
+			}
+			if (actorStepsAdded !== '') {
+				// todo handle difference between actorKeys.length and rowArray.length
+				rowYamlText += actorKeys[i] + actorStepsAdded;
+			}
 		}
 
-		if (rowArray[0].length > 0 || rowArray[1].length > 0 || rowArray[2].length > 0) {
-			rowYamlText = '  - simo:\n\n';
-			for (let i = 0; i < rowArray.length; i++) {
-				if (rowArray[i].length > 0) {
-					let actorStepsAdded = '';
-					for (const line of rowArray[i]) {
-						if (line !== false) {
-							actorStepsAdded += line;
-						}
-					}
-					if (actorStepsAdded !== '') {
-						rowYamlText += actorKeys[i] + actorStepsAdded;
-					}
-				}
-			}
-		} else {
-			rowYamlText = '';
+		// if rowYamlText not empty, it should begin with a simo block
+		if (rowYamlText !== '') {
+			rowYamlText = '  - simo:\n\n' + rowYamlText;
 		}
 
 		return rowYamlText;
