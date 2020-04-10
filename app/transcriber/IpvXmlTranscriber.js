@@ -204,7 +204,6 @@ function getToolsPartsMarterials() {
 				roles: { IV1: 'IV' }
 			}]
 		};
-		console.log('is this running');
 		return yaml.safeDump(outPut);
 	}
 
@@ -410,10 +409,6 @@ function getToolsPartsMarterials() {
 	}
 
 	transcribe() {
-		console.log('IPV FILE DIRECTORY: ', this.ipvFileDir);
-		console.log('BASENAME: ', this.basename);
-		console.log('IPV SOURCE IMAGE DIR: ', this.ipvSourceImageDir);
-
 		this.buildDirectory();
 		this.symbolCleanup();
 		// write procedure file

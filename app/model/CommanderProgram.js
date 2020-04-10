@@ -311,7 +311,7 @@ module.exports = class CommanderProgram extends Program {
 
 	renderBasicFormat(procedure, WriterClass, formatName, extension) {
 		console.log(`Creating ${formatName} format`);
-		const writer = new WriterClass(procedure);
+		const writer = new WriterClass(this, procedure);
 		writer.renderIntro();
 		writer.renderTasks();
 
