@@ -100,10 +100,10 @@ module.exports = class CommanderProgram extends Program {
 			{ option: 'ipv-xml', desc: 'Generate IPV compatible XML output', prop: 'ipvXml' }
 		];
 
-		this.transcribeInputTypes = [
-			{ option: 'eva-html', desc: 'Convert EVA html to maestro yaml', prop: 'evaHtml' },
-			{ option: 'ipv-xml', desc: 'Convert IPV XML to maestro yaml', prop: 'ipvXml' }
-		];
+		this.transcriberFormatsMap = {
+			'.zip': IpvXmlTranscriber,
+			'.htm': EvaHtmlTranscriber
+		};
 
 	}
 
@@ -132,24 +132,19 @@ module.exports = class CommanderProgram extends Program {
 			this.doCompose();
 		});
 
-		const transcribe = this.commander
+		this.commander
 			.command('transcribe [projectPath]')
 			.description('Convert files to a Maestro project')
 			.option(
 				'-i, --input <name of file to transcribe>',
 				'specify file to be transcribed',
 				null
-			);
-
-		for (const it of this.transcribeInputTypes) {
-			transcribe.option(`--${it.option}`, it.desc, null);
-		}
-
-		transcribe.action((projectPath, options) => {
-			this.prepTranscribeArguments(projectPath, options);
-			this.validateTranscribeArguments();
-			this.doTranscribe();
-		});
+			)
+			.action((projectPath, options) => {
+				this.prepTranscribeArguments(projectPath, options);
+				this.validateTranscribeArguments();
+				this.doTranscribe();
+			});
 
 		this.commander
 			.command('conduct [projectPath]')
@@ -184,22 +179,6 @@ module.exports = class CommanderProgram extends Program {
 	prepTranscribeArguments(projectPath, options) {
 		this.projectPath = handleProjectPath(projectPath);
 		this.inputFile = options.input;
-		let anyTrue = false;
-
-		for (const it of this.transcribeInputTypes) {
-			// map options inputs to program properties
-			if (options.all || options[it.prop]) {
-				this[it.prop] = true;
-				anyTrue = true;
-			} else {
-				this[it.prop] = false;
-			}
-		}
-
-		if (!anyTrue) {
-			this.evaHtml = true; // default if nothing is selected
-		}
-
 	}
 
 	/**
@@ -249,6 +228,16 @@ module.exports = class CommanderProgram extends Program {
 		// User must provide input
 		if (!this.inputFile) {
 			console.log("No input file given. '-i, --input <name of file to transcribe>'");
+			process.exit();
+		}
+
+		console.log('ext :', path.extname(this.inputFile));
+
+		if (!(path.extname(this.inputFile) in this.transcriberFormatsMap)) {
+			console.log('Invalid file type choosen. The following file types are valid');
+			for (const filetype in this.transcriberFormatsMap) {
+				console.log(filetype);
+			}
 			process.exit();
 		}
 
@@ -332,18 +321,9 @@ module.exports = class CommanderProgram extends Program {
 	}
 
 	transcribeProcedureFormats() {
-
 		console.log(`Generating maestro yaml from ${this.inputFile}`);
 
-		if (this.evaHtml) {
-
-			this.transcribeBasicFormat(this.inputFile, EvaHtmlTranscriber, 'EVA HTML', 'html');
-		}
-
-		if (this.ipvXml) {
-			// Run IpvXmlTranscriber
-			this.transcribeBasicFormat(this.inputFile, IpvXmlTranscriber, 'IPV XML', 'xml');
-		}
+		this.transcribeBasicFormat(this.inputFile, this.transcriberFormatsMap[path.extname(this.inputFile)], 'EVA HTML', 'html');
 
 	}
 
