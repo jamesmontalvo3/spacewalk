@@ -231,13 +231,17 @@ module.exports = class CommanderProgram extends Program {
 			process.exit();
 		}
 
-		console.log('ext :', path.extname(this.inputFile));
-
 		if (!(path.extname(this.inputFile) in this.transcriberFormatsMap)) {
 			console.log('Invalid file type choosen. The following file types are valid');
 			for (const filetype in this.transcriberFormatsMap) {
 				console.log(filetype);
 			}
+			process.exit();
+		}
+
+		//  If this process can't write to the output location, emit an error and quit
+		if (!canWrite(this.projectPath)) {
+			console.error(`Can't write to output location: ${this.projectPath}`);
 			process.exit();
 		}
 
@@ -323,13 +327,13 @@ module.exports = class CommanderProgram extends Program {
 	transcribeProcedureFormats() {
 		console.log(`Generating maestro yaml from ${this.inputFile}`);
 
-		this.transcribeBasicFormat(this.inputFile, this.transcriberFormatsMap[path.extname(this.inputFile)], 'EVA HTML', 'html');
+		this.transcribeBasicFormat(this.projectPath, this.inputFile, this.transcriberFormatsMap[path.extname(this.inputFile)], 'EVA HTML', 'html');
 
 	}
 
-	transcribeBasicFormat(file, WriterClass, formatName) {
+	transcribeBasicFormat(projectPath, file, WriterClass, formatName) {
 		console.log(`Transcribing yaml from ${formatName} format`);
-		const writer = new WriterClass(file);
+		const writer = new WriterClass(projectPath, file);
 		writer.transcribe();
 	}
 

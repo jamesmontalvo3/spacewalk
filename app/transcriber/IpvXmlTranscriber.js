@@ -9,21 +9,18 @@ const AdmZip = require('adm-zip');
 const yaml = require('js-yaml');
 const odfSymbols = require('./odfSymbolMap.js');
 var $;
-var currentComponent = {};
 
 module.exports = class IpvXmlTranscriber {
-	constructor(file) {
-		this.file = file;
+	constructor(projectPath, file) {
 		this.ipvZipFile = path.join(process.cwd(), file);
 		this.ipvFileDir = path.dirname(this.ipvZipFile);
 		this.basename = path.basename(this.ipvZipFile, path.extname(this.ipvZipFile));
+		this.ipvSourceImageDir = path.join(this.ipvFileDir, `${this.basename}_files`);
 		this.zip = new AdmZip(this.ipvZipFile);
 		this.ipvFile = path.join(this.ipvFileDir, `${this.basename}.xml`);
-		this.projectDir = path.dirname(this.ipvFileDir);
-		this.tasksDir = path.join(this.projectDir, 'tasks'); // should be called activityDir need to fix when merging
-		this.procsDir = path.join(this.projectDir, 'procedures');
-		this.ipvSourceImageDir = path.join(this.ipvFileDir, `${this.basename}_files`);
-		this.imagesDir = path.join(this.projectDir, 'images');
+		this.tasksDir = path.join(projectPath, 'tasks'); // should be called activityDir need to fix when merging
+		this.procsDir = path.join(projectPath, 'procedures');
+		this.imagesDir = path.join(projectPath, 'images');
 	}
 
 	/**
@@ -242,67 +239,45 @@ module.exports = class IpvXmlTranscriber {
 	}
 
 	/**
-<<<<<<< HEAD
-	 * Builds step yaml from xml object
-	 * @param {Object} currentElement current selected XML element
-	 * @return {string}
+	 * Builds yaml step output from xml element
+	 * @param {Object} givenElement  xml tag with step content
+	 * @return {string}         yaml output
 	 */
-	addstepTitle(currentElement) {
-		let steps = '';
-		const instructionText = this.replaceFigureCalls($(currentElement).find('instruction'));
-		const titleText = this.sanatizeInput($(currentElement).children('text'));
-		if (instructionText) {
-			if (!currentComponent.text) {
-				currentComponent.text = [];
-			}
-			currentComponent.text.push(instructionText);
-		}
-		if (titleText.length > 0) {
-			if (Object.keys(currentComponent).length > 0) {
-				steps = currentComponent;
-				currentComponent = {};
-			}
-			currentComponent.title = titleText;
-		}
-
-		return steps;
-
-	}
-
-	/**
-	 * Pushes step yaml to currentComponent var from xml object
-	 * @param {Object} currentElement current selected XML element
-	 */
-	addstepContent(currentElement) {
-		const instruction = this.replaceFigureCalls($(currentElement).find('instruction'));
-		const image = this.sanatizeInput($(currentElement).find('image'));
-		if (instruction.length > 0) {
-			currentComponent.text = currentComponent.text || [];
-			currentComponent.text.push(instruction);
-		}
-		if (image) {
-			currentComponent.images = currentComponent.images || [];
-			currentComponent.images.push(...this.getImages(currentElement));
-		}
-
-	}
-
-	/**
- * Builds yaml step output from xml element
- * @param {Object} givenElement  xml tag with step content
- * @return {string}         yaml output
- */
 	buildStepFromElement(givenElement) {
 		const steps = [];
+		let currentComponent = {};
 
 		$(givenElement).children().each((index, currentElement) => {
 
 			if (this.compareTag(currentElement, 'steptitle')) {
-				steps.push(this.addStepTitle());
+				const instructionText = this.replaceFigureCalls($(currentElement).find('instruction'));
+				const titleText = this.sanatizeInput($(currentElement).children('text'));
+				if (instructionText) {
+					if (!currentComponent.text) {
+						currentComponent.text = [];
+					}
+					currentComponent.text.push(instructionText);
+				}
+				if (titleText.length > 0) {
+					if (Object.keys(currentComponent).length > 0) {
+						steps.push(currentComponent);
+						currentComponent = {};
+					}
+					currentComponent.title = titleText;
+				}
 			}
 
 			if (this.compareTag(currentElement, 'stepcontent')) {
-				this.addstepContent();
+				const instruction = this.replaceFigureCalls($(currentElement).find('instruction'));
+				const image = this.sanatizeInput($(currentElement).find('image'));
+				if (instruction.length > 0) {
+					currentComponent.text = currentComponent.text || [];
+					currentComponent.text.push(instruction);
+				}
+				if (image) {
+					currentComponent.images = currentComponent.images || [];
+					currentComponent.images.push(...this.getImages(currentElement));
+				}
 			}
 
 			if (this.compareTag(currentElement, 'clarifyinginfo')) {
@@ -446,12 +421,21 @@ module.exports = class IpvXmlTranscriber {
 	}
 
 	transcribe() {
+		console.log('Tasks Directory', this.tasksDir);
+		console.log('Procs Directory', this.procsDir);
+
+		console.log('IPV ZIP FILE: ', this.ipvZipFile);
+		console.log('IPV File DIRECTORY: ', this.ipvFileDir);
+		console.log('BASENAME: ', this.basename);
+		console.log('IPV SOURCE IMAGE DIRECTORY: ', this.ipvSourceImageDir);
+
 		this.buildDirectory();
 		this.symbolCleanup();
 		// write procedure file
 		fs.writeFileSync(path.join(this.procsDir, `${this.basename}.yml`), `${this.getProcHeader()}`);
 		// write task file
 		fs.writeFileSync(path.join(this.tasksDir, `${this.basename}.yml`), `${this.buildActivity()}`);
+		console.log('did this run');
 	}
 
 };
