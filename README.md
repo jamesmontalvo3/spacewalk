@@ -1,5 +1,4 @@
 <h1 align="center">Maestro</h1>
-<p align="center"><img src="app/assets/images/maestro.png" style="width:100px;"/></p>
 <h5 align="center">Composing procedures for space operations</h5>
 
 ## Purpose
